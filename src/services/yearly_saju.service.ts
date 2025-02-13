@@ -1,6 +1,7 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { OpenAIService } from './openai.service';
 import {
+  YearlySajuOpenAIResponseSchema,
   YearlySajuRequest,
   YearlySajuResponse,
   YearlySajuResponseSchema,
@@ -15,12 +16,25 @@ export class YearlySajuService {
       .getYearlySaju(form)
       .then((res) => res.choices[0].message.parsed);
 
-    const parsed = YearlySajuResponseSchema.parseAsync(respone).catch(
-      (_err) => {
-        throw new InternalServerErrorException('Failed to parse response');
-      },
-    );
+    const parsed = await YearlySajuOpenAIResponseSchema.parseAsync(
+      respone,
+    ).catch((_err) => {
+      throw new InternalServerErrorException('Failed to parse response');
+    });
 
-    return parsed;
+    const result: YearlySajuResponse = {
+      name: 'John Doe',
+      birthDateTime: form.birthDateTime,
+      gender: form.gender,
+      ...parsed,
+    };
+
+    const parsedResult = await YearlySajuResponseSchema.parseAsync(
+      result,
+    ).catch((_err) => {
+      throw new InternalServerErrorException('Failed to parse response');
+    });
+
+    return parsedResult;
   }
 }

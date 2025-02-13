@@ -12,8 +12,10 @@ export class YearlySajuController {
   @Post()
   @HttpCode(200)
   async getYearlySaju(@Body() form: YearlySajuRequest) {
-    console.log('form', form);
-    const parsed = YearlySajuRequestSchema.parse(form);
+    const parsed = YearlySajuRequestSchema.parse({
+      ...form,
+      birthDateTime: new Date(form.birthDateTime),
+    });
     const response = await this.yearlySajuService.getYearlySaju(parsed);
 
     return response;
