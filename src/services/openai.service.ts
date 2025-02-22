@@ -5,9 +5,9 @@ import { zodResponseFormat } from 'openai/helpers/zod';
 import { ParsedChatCompletion } from 'openai/resources/beta/chat/completions';
 import { Config } from 'src/schemas/config.schema';
 import {
+  YearlySajuOpenAIResponse,
+  YearlySajuOpenAIResponseSchema,
   YearlySajuRequest,
-  YearlySajuResponse,
-  YearlySajuResponseSchema,
 } from 'src/schemas/yearly_saju.schema';
 
 @Injectable()
@@ -27,13 +27,14 @@ export class OpenAIService {
 
   async getYearlySaju(
     form: YearlySajuRequest,
-  ): Promise<ParsedChatCompletion<YearlySajuResponse>> {
+  ): Promise<ParsedChatCompletion<YearlySajuOpenAIResponse>> {
     return this.openAI.beta.chat.completions.parse({
       model: 'gpt-4o-mini',
       messages: [
         {
           role: 'system',
-          content: 'Create yearly four pillars pf destiny',
+          content:
+            '사주팔자를 알려줘. 천간, 지지, 오행은 각각 4개씩 년주, 월주, 일주, 시주 순으로 있어야 해.',
         },
         {
           role: 'user',
@@ -41,7 +42,7 @@ export class OpenAIService {
         },
       ],
       response_format: zodResponseFormat(
-        YearlySajuResponseSchema,
+        YearlySajuOpenAIResponseSchema,
         'YearlySajuResponse',
       ),
     });
