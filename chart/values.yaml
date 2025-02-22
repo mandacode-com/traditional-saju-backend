@@ -69,7 +69,7 @@ ingress:
     {
       kubernetes.io/ingress.class: 'kong',
       konghq.com/strip-path: 'true',
-      argoproj.io/expect-ingress: 'false',
+      argoproj.io/expect-ingresses: "false"
     }
   hosts:
     - host: saju.mandacode.com
