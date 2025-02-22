@@ -10,23 +10,20 @@ import {
 
 export const YearlySajuRequestSchema = z.object({
   gender: genderSchema,
-  birthDateTime: z.string().datetime(),
+  birthDateTime: z.date(),
   datingStatus: datingStatusSchema,
   jobStatus: jobStatusSchema,
 });
 export type YearlySajuRequest = z.infer<typeof YearlySajuRequestSchema>;
 
-export const YearlySajuResponseSchema = z.object({
-  name: z.string(),
-  birthDateTime: z.string(),
-  gender: genderSchema,
+export const YearlySajuOpenAIResponseSchema = z.object({
   chart: z.object({
     heavenly: z.object({
-      stem: z.array(HeavenlyStemSchema),
+      stems: z.array(HeavenlyStemSchema),
       fiveElements: z.array(FiveElementSchema),
     }),
     earthly: z.object({
-      branch: z.array(EarthlyBranchSchema),
+      branches: z.array(EarthlyBranchSchema),
       fiveElements: z.array(FiveElementSchema),
     }),
   }),
@@ -40,5 +37,15 @@ export const YearlySajuResponseSchema = z.object({
     waysToImprove: z.string(),
     waysToAvoidBadLuck: z.string(),
   }),
+});
+export type YearlySajuOpenAIResponse = z.infer<
+  typeof YearlySajuOpenAIResponseSchema
+>;
+
+export const YearlySajuResponseSchema = z.object({
+  name: z.string(),
+  birthDateTime: z.date(),
+  gender: genderSchema,
+  ...YearlySajuOpenAIResponseSchema.shape,
 });
 export type YearlySajuResponse = z.infer<typeof YearlySajuResponseSchema>;
