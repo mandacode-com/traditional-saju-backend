@@ -9,6 +9,9 @@ export function validate(raw: Record<string, unknown>) {
     openai: {
       api_key: raw.OPENAI_API_KEY as string,
     },
+    jwt: {
+      secret: raw.JWT_SECRET as string,
+    },
   };
 
   const parsedEnv = configSchema.parse(env);
