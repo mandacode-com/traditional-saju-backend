@@ -5,6 +5,8 @@ import { YearlySajuModule } from './modules/yearly_saju.module';
 import { AppController } from './app.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { Config } from './schemas/config.schema';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from './guards/auth.guard';
 
 @Module({
   imports: [
@@ -20,6 +22,12 @@ import { Config } from './schemas/config.schema';
       global: true,
     }),
     YearlySajuModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
   ],
   controllers: [AppController],
 })
