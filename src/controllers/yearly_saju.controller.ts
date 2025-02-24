@@ -11,10 +11,10 @@ export class YearlySajuController {
   constructor(private readonly yearlySajuService: YearlySajuService) {}
 
   @Post()
-  @Roles(['user', 'admin'])
+  @Roles(['user', 'admin', 'guest'])
   @HttpCode(200)
   async getYearlySaju(@Body() form: YearlySajuRequest) {
-    const parsed = YearlySajuRequestSchema.parse({
+    const parsed = await YearlySajuRequestSchema.parseAsync({
       ...form,
       birthDateTime: new Date(form.birthDateTime),
     });

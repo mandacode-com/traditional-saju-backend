@@ -35,7 +35,8 @@ export const YearlySajuOpenAIResponseSchema = z.object({
     health: z.string(),
     career: z.string(),
     waysToImprove: z.string(),
-    waysToAvoidBadLuck: z.string(),
+    caution: z.string(),
+    questionAnswer: z.string().optional(),
   }),
 });
 export type YearlySajuOpenAIResponse = z.infer<
