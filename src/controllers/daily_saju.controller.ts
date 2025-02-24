@@ -18,7 +18,13 @@ export class DailySajuController {
       ...body,
       birthDateTime: new Date(body.birthDateTime),
     });
-    const response = await this.dailySajuService.getDailySaju(parsed);
+    const response = await this.dailySajuService.getDailySaju({
+      request: parsed,
+    });
+    await this.dailySajuService.saveDailySaju({
+      data: response,
+      userUuid: '1234',
+    });
 
     return response;
   }

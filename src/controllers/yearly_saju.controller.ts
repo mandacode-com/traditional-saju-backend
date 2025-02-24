@@ -18,7 +18,13 @@ export class YearlySajuController {
       ...form,
       birthDateTime: new Date(form.birthDateTime),
     });
-    const response = await this.yearlySajuService.getYearlySaju(parsed);
+    const response = await this.yearlySajuService.getYearlySaju({
+      request: parsed,
+    });
+    await this.yearlySajuService.saveYearlySaju({
+      data: response,
+      userUuid: '1234',
+    });
 
     return response;
   }
