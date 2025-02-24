@@ -6,14 +6,39 @@ import {
   DailySajuResponse,
   DailySajuResponseSchema,
 } from 'src/schemas/daily_saju.schema';
+import { PrismaService } from './prisma.service';
+import { DailyFortune } from '@prisma/client';
 
 @Injectable()
 export class DailySajuService {
-  constructor(private readonly openai: OpenAIService) {}
+  static version = 1;
 
-  async getDailySaju(request: DailySajuRequest): Promise<DailySajuResponse> {
+  constructor(
+    private readonly openai: OpenAIService,
+    private readonly prisma: PrismaService,
+  ) {}
+
+  async isAlreadyGenerated(data: {
+    userUuid: string;
+  }): Promise<DailyFortune | null> {
+    return this.prisma.dailyFortune.findFirst({
+      where: {
+        user: {
+          uuid: data.userUuid,
+        },
+        version: DailySajuService.version,
+        createdAt: {
+          gte: new Date(new Date().setHours(0, 0, 0, 0)),
+        },
+      },
+    });
+  }
+
+  async getDailySaju(data: {
+    request: DailySajuRequest;
+  }): Promise<DailySajuResponse> {
     const respone = await this.openai
-      .getDailySaju(request)
+      .getDailySaju(data.request)
       .then((res) => res.choices[0].message.parsed);
 
     const parsed = await DailySajuOpenAIResponseSchema.parseAsync(
@@ -24,8 +49,8 @@ export class DailySajuService {
 
     const result: DailySajuResponse = {
       name: 'John Doe',
-      birthDateTime: request.birthDateTime,
-      gender: request.gender,
+      birthDateTime: data.request.birthDateTime,
+      gender: data.request.gender,
       ...parsed,
     };
 
@@ -36,5 +61,28 @@ export class DailySajuService {
     );
 
     return parsedResult;
+  }
+
+  async saveDailySaju(data: {
+    data: DailySajuResponse;
+    userUuid: string;
+  }): Promise<DailyFortune> {
+    const parsed = await DailySajuResponseSchema.parseAsync(data.data).catch(
+      (_err) => {
+        throw new InternalServerErrorException('Failed to parse response');
+      },
+    );
+    return this.prisma.dailyFortune.create({
+      data: {
+        user: {
+          connect: {
+            uuid: data.userUuid,
+          },
+        },
+        version: DailySajuService.version,
+        fortune: parsed,
+        createdAt: new Date(),
+      },
+    });
   }
 }
