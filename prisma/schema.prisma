@@ -41,8 +41,8 @@ model UserInfo {
 
 model DailyFortune {
   id        Int      @id @default(autoincrement())
-  date      DateTime
-  fortune   String
+  version   Float    @default(1.0)
+  fortune   Json
   userId    Int      @map("user_id")
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now()) @map("created_at")
@@ -52,8 +52,8 @@ model DailyFortune {
 
 model YearlyFortune {
   id        Int      @id @default(autoincrement())
-  year      Int
-  fortune   String
+  version   Float    @default(1.0)
+  fortune   Json
   userId    Int      @map("user_id")
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now()) @map("created_at")
