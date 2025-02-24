@@ -134,3 +134,16 @@ affinity: {}
 nodeEnv: 'production'
 openai:
   apiKey: ''
+
+# Postgres configuration
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: saju
+    username: saju
+    password: saju
+  persistence:
+    enabled: true
+    size: 8Gi
+    accessMode: ReadWriteOnce
+    existingClaim: 'postgres-pvc'
