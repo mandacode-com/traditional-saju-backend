@@ -16,6 +16,9 @@ export const configSchema = z.object({
   openai: z.object({
     api_key: z.string().nonempty(),
   }),
+  jwt: z.object({
+    secret: z.string().nonempty(),
+  }),
 });
 
 export type Config = z.infer<typeof configSchema>;
