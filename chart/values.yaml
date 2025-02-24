@@ -138,12 +138,22 @@ openai:
 # Postgres configuration
 postgresql:
   enabled: true
+  fullnameOverride: saju-postgresql
   auth:
     postgresPassword: saju
     username: saju
     password: saju
+    database: saju
   persistence:
     enabled: true
     size: 8Gi
     accessMode: ReadWriteOnce
     existingClaim: 'postgres-pvc'
+
+prisma:
+  database:
+    secretName: prisma-database-secret
+    dbHost: saju-postgresql
+    dbName: saju
+    dbUser: saju
+    dbPort: 5432

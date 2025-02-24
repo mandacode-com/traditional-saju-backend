@@ -67,6 +67,11 @@ spec:
               value: {{ .Values.image.port | quote }}
             - name: OPENAI_API_KEY
               value: {{ .Values.openai.apiKey }}
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.prisma.database.secretName }}
+                  key: DATABASE_URL
       {{- with .Values.volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}
