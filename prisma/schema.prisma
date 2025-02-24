@@ -1,0 +1,79 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int             @id @default(autoincrement())
+  uuid          String          @unique
+  DailyFortune  DailyFortune[]
+  YearlyFortune YearlyFortune[]
+  UserInfo      UserInfo?
+
+  @@map("users")
+}
+
+model UserInfo {
+  id        Int           @id @default(autoincrement())
+  userId    Int           @unique @map("user_id")
+  user      User          @relation(fields: [userId], references: [id])
+  name      String?
+  gender    Gender?
+  age       Int?
+  birthdate DateTime?
+  dating    DatingStatus?
+  job       JobStatus?
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("user_infos")
+}
+
+model DailyFortune {
+  id        Int      @id @default(autoincrement())
+  date      DateTime
+  fortune   String
+  userId    Int      @map("user_id")
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("daily_fortunes")
+}
+
+model YearlyFortune {
+  id        Int      @id @default(autoincrement())
+  year      Int
+  fortune   String
+  userId    Int      @map("user_id")
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("yearly_fortunes")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum DatingStatus {
+  SINGLE
+  IN_RELATIONSHIP
+  MARRIED
+}
+
+enum JobStatus {
+  STUDENT
+  WORKING
+  UNEMPLOYED
+}
