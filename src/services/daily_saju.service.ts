@@ -18,10 +18,12 @@ export class DailySajuService {
     private readonly prisma: PrismaService,
   ) {}
 
-  async isAlreadyGenerated(data: {
+  async getExistingDailySaju(data: {
     userUuid: string;
-  }): Promise<DailyFortune | null> {
-    return this.prisma.dailyFortune.findFirst({
+  }): Promise<
+    (Omit<DailyFortune, 'fortune'> & { fortune: DailySajuResponse }) | null
+  > {
+    const existingData = await this.prisma.dailyFortune.findFirst({
       where: {
         user: {
           uuid: data.userUuid,
@@ -32,6 +34,20 @@ export class DailySajuService {
         },
       },
     });
+
+    if (!existingData) {
+      return null;
+    } else {
+      const parsedFortune = await DailySajuResponseSchema.parseAsync(
+        existingData.fortune,
+      ).catch((_err) => {
+        throw new InternalServerErrorException('Failed to parse response');
+      });
+      return {
+        ...existingData,
+        fortune: parsedFortune,
+      };
+    }
   }
 
   async getDailySaju(data: {

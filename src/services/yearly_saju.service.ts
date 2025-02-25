@@ -18,10 +18,12 @@ export class YearlySajuService {
     private readonly prisma: PrismaService,
   ) {}
 
-  async isAlreadyGenerated(data: {
+  async getExistingYearlySaju(data: {
     userUuid: string;
-  }): Promise<YearlyFortune | null> {
-    return this.prisma.yearlyFortune.findFirst({
+  }): Promise<
+    (Omit<YearlyFortune, 'fortune'> & { fortune: YearlySajuResponse }) | null
+  > {
+    const existingData = await this.prisma.yearlyFortune.findFirst({
       where: {
         user: {
           uuid: data.userUuid,
@@ -32,6 +34,20 @@ export class YearlySajuService {
         },
       },
     });
+
+    if (!existingData) {
+      return null;
+    } else {
+      const parsedFortune = await YearlySajuResponseSchema.parseAsync(
+        existingData.fortune,
+      ).catch((_err) => {
+        throw new InternalServerErrorException('Failed to parse response');
+      });
+      return {
+        ...existingData,
+        fortune: parsedFortune,
+      };
+    }
   }
 
   async getYearlySaju(data: {

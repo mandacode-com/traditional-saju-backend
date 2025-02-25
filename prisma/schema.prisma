@@ -62,18 +62,18 @@ model YearlyFortune {
 }
 
 enum Gender {
-  MALE
-  FEMALE
+  male
+  female
 }
 
 enum DatingStatus {
-  SINGLE
-  IN_RELATIONSHIP
-  MARRIED
+  single
+  dating
+  married
 }
 
 enum JobStatus {
-  STUDENT
-  WORKING
-  UNEMPLOYED
+  student
+  working
+  unemployed
 }
