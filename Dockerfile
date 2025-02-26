@@ -15,6 +15,9 @@ RUN npm ci
 # Copy source files
 COPY . .
 
+# Generate Prisma Client
+RUN npx prisma generate
+
 # Build NestJS application
 RUN npm run build
 
@@ -32,6 +35,10 @@ COPY package*.json ./
 # Remove devDependencies to reduce final image size
 RUN npm prune --production
 
+# Copy Prisma Client
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+
 # =============================
 # 3. Final Runtime Stage
 # =============================
@@ -48,9 +55,12 @@ COPY --from=pruner /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY package.json ./
 
+# Copy Prisma Client
+COPY --from=pruner /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=pruner /app/node_modules/@prisma ./node_modules/@prisma
+
 # Expose application port
 EXPOSE 3000
 
 # Set default command
 CMD ["node", "dist/main.js"]
-
