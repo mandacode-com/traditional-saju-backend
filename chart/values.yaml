@@ -166,7 +166,9 @@ postgresql:
     enabled: true
     persistence:
       enabled: true
-      existingClaim: saju-postgres-pvc
+      storageClass: 'saju-postgresql-storage'
+      size: 8Gi
+      accessMode: ReadWriteOnce
   securityContext:
     enabled: true
     fsGroup: 1001 
