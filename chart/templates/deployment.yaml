@@ -72,6 +72,11 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.prisma.database.secretName }}
                   key: DATABASE_URL
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.jwt.secret.name }}
+                  key: key
             - name: OPENAI_SYSTEM_MESSAGE_DAILY_ALL
               value: {{ .Values.openai.system_message.daily.all | default nil | quote }}
             - name: OPENAI_SYSTEM_MESSAGE_YEARLY_CHART
