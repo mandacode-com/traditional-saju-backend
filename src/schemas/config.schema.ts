@@ -29,7 +29,7 @@ export const configSchema = z.object({
           .string()
           .nonempty()
           .default(
-            '주어지는 정보에 대해 신년 사주를 서술해줘. 만약 시간이 주어지지 않았다면(birthtime disabled) 시간은 생략해.',
+            '주어지는 정보에 대해 신년 사주를 서술해줘. 만약 시간 비활성화가 있다면 시간은 생략해.',
           ),
         general: z
           .string()
