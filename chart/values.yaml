@@ -167,6 +167,10 @@ postgresql:
     persistence:
       enabled: true
       existingClaim: saju-postgres-pvc
+  securityContext:
+    enabled: true
+    fsGroup: 1001 
+    runAsUser: 1001
 
 prisma:
   database:
