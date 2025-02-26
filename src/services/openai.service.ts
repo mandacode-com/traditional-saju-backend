@@ -3,13 +3,11 @@ import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { ChatModel } from 'openai/resources';
-import { ParsedChatCompletion } from 'openai/resources/beta/chat/completions';
 import { Config } from 'src/schemas/config.schema';
 import {
   DailySajuOpenAIResponse,
   DailySajuOpenAIResponseSchema,
   DailySajuRequest,
-  DailySajuResponse,
 } from 'src/schemas/daily_saju.schema';
 import {
   YearlySajuOpenAIResponse,
