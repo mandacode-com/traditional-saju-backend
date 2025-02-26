@@ -162,8 +162,12 @@ postgresql:
     enabled: true
     size: 8Gi
     accessMode: ReadWriteOnce
-    existingClaim: 'saju-postgres-pvc'
+    existingClaim: 'postgres-pvc'
 
 prisma:
   database:
-    url: 'postgresql://saju:saju@saju-postgresql:5432/saju'
+    secretName: prisma-database-secret
+    dbHost: saju-postgresql
+    dbName: saju
+    dbUser: saju
+    dbPort: 5432
