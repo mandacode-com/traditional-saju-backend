@@ -53,9 +53,7 @@ export class YearlySajuService {
   async getYearlySaju(data: {
     request: YearlySajuRequest;
   }): Promise<YearlySajuResponse> {
-    const respone = await this.openai
-      .getYearlySaju(data.request)
-      .then((res) => res.choices[0].message.parsed);
+    const respone = await this.openai.getYearlySaju(data.request);
 
     const parsed = await YearlySajuOpenAIResponseSchema.parseAsync(
       respone,

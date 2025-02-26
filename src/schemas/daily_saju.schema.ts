@@ -6,6 +6,7 @@ export const DailySajuRequestSchema = z.object({
   birthDateTime: z.date(),
   datingStatus: z.nativeEnum(DatingStatus),
   jobStatus: z.nativeEnum(JobStatus),
+  question: z.string().optional(),
 });
 export type DailySajuRequest = z.infer<typeof DailySajuRequestSchema>;
 

@@ -53,9 +53,7 @@ export class DailySajuService {
   async getDailySaju(data: {
     request: DailySajuRequest;
   }): Promise<DailySajuResponse> {
-    const respone = await this.openai
-      .getDailySaju(data.request)
-      .then((res) => res.choices[0].message.parsed);
+    const respone = await this.openai.getDailySaju(data.request);
 
     const parsed = await DailySajuOpenAIResponseSchema.parseAsync(
       respone,
