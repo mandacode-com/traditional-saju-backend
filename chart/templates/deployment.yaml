@@ -68,10 +68,7 @@ spec:
             - name: OPENAI_API_KEY
               value: {{ .Values.openai.apiKey }}
             - name: DATABASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.prisma.database.secretName }}
-                  key: DATABASE_URL
+              value: {{ .Values.prisma.database.url | quote }}
             - name: OPENAI_SYSTEM_MESSAGE_DAILY_ALL
               value: {{ .Values.openai.system_message.daily.all | default nil | quote }}
             - name: OPENAI_SYSTEM_MESSAGE_YEARLY_CHART
