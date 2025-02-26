@@ -7,6 +7,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { Config } from './schemas/config.schema';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './guards/auth.guard';
+import { DailySajuModule } from './modules/daily_saju.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { AuthGuard } from './guards/auth.guard';
       validate: validate,
       isGlobal: true,
     }),
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService<Config, true>) => ({
@@ -22,6 +24,7 @@ import { AuthGuard } from './guards/auth.guard';
       global: true,
     }),
     YearlySajuModule,
+    DailySajuModule,
   ],
   providers: [
     {

@@ -1,16 +1,16 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { OpenAIService } from './openai.service';
 import {
-  YearlySajuOpenAIResponseSchema,
-  YearlySajuRequest,
-  YearlySajuResponse,
-  YearlySajuResponseSchema,
-} from 'src/schemas/yearly_saju.schema';
+  DailySajuOpenAIResponseSchema,
+  DailySajuRequest,
+  DailySajuResponse,
+  DailySajuResponseSchema,
+} from 'src/schemas/daily_saju.schema';
 import { PrismaService } from './prisma.service';
-import { YearlyFortune } from '@prisma/client';
+import { DailyFortune } from '@prisma/client';
 
 @Injectable()
-export class YearlySajuService {
+export class DailySajuService {
   static version = 1;
 
   constructor(
@@ -18,19 +18,19 @@ export class YearlySajuService {
     private readonly prisma: PrismaService,
   ) {}
 
-  async getExistingYearlySaju(data: {
+  async getExistingDailySaju(data: {
     userUuid: string;
   }): Promise<
-    (Omit<YearlyFortune, 'fortune'> & { fortune: YearlySajuResponse }) | null
+    (Omit<DailyFortune, 'fortune'> & { fortune: DailySajuResponse }) | null
   > {
-    const existingData = await this.prisma.yearlyFortune.findFirst({
+    const existingData = await this.prisma.dailyFortune.findFirst({
       where: {
         user: {
           uuid: data.userUuid,
         },
-        version: YearlySajuService.version,
+        version: DailySajuService.version,
         createdAt: {
-          gte: new Date(new Date().getFullYear(), 0, 0),
+          gte: new Date(new Date().setHours(0, 0, 0, 0)),
         },
       },
     });
@@ -38,7 +38,7 @@ export class YearlySajuService {
     if (!existingData) {
       return null;
     } else {
-      const parsedFortune = await YearlySajuResponseSchema.parseAsync(
+      const parsedFortune = await DailySajuResponseSchema.parseAsync(
         existingData.fortune,
       ).catch((_err) => {
         throw new InternalServerErrorException('Failed to parse response');
@@ -50,50 +50,50 @@ export class YearlySajuService {
     }
   }
 
-  async getYearlySaju(data: {
-    request: YearlySajuRequest;
-  }): Promise<YearlySajuResponse> {
-    const respone = await this.openai.getYearlySaju(data.request);
+  async getDailySaju(data: {
+    request: DailySajuRequest;
+  }): Promise<DailySajuResponse> {
+    const respone = await this.openai.getDailySaju(data.request);
 
-    const parsed = await YearlySajuOpenAIResponseSchema.parseAsync(
+    const parsed = await DailySajuOpenAIResponseSchema.parseAsync(
       respone,
     ).catch((_err) => {
       throw new InternalServerErrorException('Failed to parse response');
     });
 
-    const result: YearlySajuResponse = {
+    const result: DailySajuResponse = {
       name: 'John Doe',
       birthDateTime: data.request.birthDateTime,
       gender: data.request.gender,
       ...parsed,
     };
 
-    const parsedResult = await YearlySajuResponseSchema.parseAsync(
-      result,
-    ).catch((_err) => {
-      throw new InternalServerErrorException('Failed to parse response');
-    });
-
-    return parsedResult;
-  }
-
-  async saveYearlySaju(data: {
-    data: YearlySajuResponse;
-    userUuid: string;
-  }): Promise<YearlyFortune> {
-    const parsed = await YearlySajuResponseSchema.parseAsync(data.data).catch(
+    const parsedResult = await DailySajuResponseSchema.parseAsync(result).catch(
       (_err) => {
         throw new InternalServerErrorException('Failed to parse response');
       },
     );
-    return this.prisma.yearlyFortune.create({
+
+    return parsedResult;
+  }
+
+  async saveDailySaju(data: {
+    data: DailySajuResponse;
+    userUuid: string;
+  }): Promise<DailyFortune> {
+    const parsed = await DailySajuResponseSchema.parseAsync(data.data).catch(
+      (_err) => {
+        throw new InternalServerErrorException('Failed to parse response');
+      },
+    );
+    return this.prisma.dailyFortune.create({
       data: {
         user: {
           connect: {
             uuid: data.userUuid,
           },
         },
-        version: YearlySajuService.version,
+        version: DailySajuService.version,
         fortune: parsed,
         createdAt: new Date(),
       },

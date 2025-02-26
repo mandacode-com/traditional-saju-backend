@@ -3,7 +3,7 @@ import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Roles } from 'src/decorators/role.decorator';
 import { UserRequest } from 'src/interfaces/user_request.interface';
-import { Role } from 'src/schemas/role.schema';
+import { Role, RoleEnum } from 'src/schemas/role.schema';
 import { TokenPayload, tokenPayloadSchema } from 'src/schemas/token.schema';
 
 @Injectable()
@@ -16,11 +16,16 @@ export class AuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<UserRequest>();
 
-    const roles = this.reflector.get<Role[]>(Roles, context.getHandler());
-    if (!roles) {
-      return false;
+    const requiredRoles = this.reflector.get<Role[]>(
+      Roles,
+      context.getHandler(),
+    );
+    // If there are no required roles, then the route is public
+    if (!requiredRoles) {
+      return true;
     }
-    if (roles.includes('guest')) {
+    // If required roles include GUEST, then the route is public
+    if (requiredRoles.includes(RoleEnum.GUEST)) {
       return true;
     }
 
@@ -37,10 +42,11 @@ export class AuthGuard implements CanActivate {
     if (!parsedPayload.success) {
       return false;
     }
-    if (!roles.includes(parsedPayload.data.role)) {
+    if (!requiredRoles.includes(parsedPayload.data.role)) {
       return false;
     }
 
+    // Set the user object to the request object
     request.user = parsedPayload.data;
     return true;
   }
