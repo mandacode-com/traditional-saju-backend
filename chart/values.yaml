@@ -166,13 +166,16 @@ postgresql:
     enabled: true
     persistence:
       enabled: true
-      storageClass: 'saju-postgresql-storage'
+      storageClass: saju-postgresql-storage
       size: 8Gi
       accessMode: ReadWriteOnce
   securityContext:
     enabled: true
     fsGroup: 1001 
     runAsUser: 1001
+    fsGroupChangePolicy: "OnRootMismatch"
+  volumePermissions:
+    enabled: true
 
 prisma:
   database:
