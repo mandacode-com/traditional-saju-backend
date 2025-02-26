@@ -162,9 +162,11 @@ postgresql:
     username: saju
     password: saju
     database: saju
-  persistence:
+  primary:
     enabled: true
-    existingClaim: saju-postgres-pvc
+    persistence:
+      enabled: true
+      existingClaim: saju-postgres-pvc
 
 prisma:
   database:
