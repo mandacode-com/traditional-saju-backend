@@ -166,7 +166,7 @@ postgresql:
     enabled: true
     size: 8Gi
     accessMode: ReadWriteOnce
-    existingClaim: 'postgres-pvc'
+    existingClaim: saju-postgres-pvc
 
 prisma:
   database:
