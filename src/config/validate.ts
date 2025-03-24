@@ -28,8 +28,13 @@ export function validate(raw: Record<string, unknown>) {
         },
       },
     },
-    jwt: {
-      secret: raw.JWT_SECRET as string,
+    auth: {
+      mandacode: {
+        verifyTokenEndpoint: raw.MANDACODE_VERIFY_TOKEN_ENDPOINT as string,
+      },
+      jwt: {
+        secret: raw.JWT_SECRET as string,
+      },
     },
   };
 

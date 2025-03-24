@@ -89,8 +89,16 @@ export const configSchema = z.object({
       }),
     }),
   }),
-  jwt: z.object({
-    secret: z.string().nonempty(),
+  auth: z.object({
+    mandacode: z.object({
+      verifyTokenEndpoint: z
+        .string()
+        .url()
+        .default('https://auth.mandacode.com/api/core/token/verify'),
+    }),
+    jwt: z.object({
+      secret: z.string().nonempty(),
+    }),
   }),
 });
 
