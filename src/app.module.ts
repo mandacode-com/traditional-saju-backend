@@ -15,11 +15,10 @@ import { DailySajuModule } from './modules/daily_saju.module';
       validate: validate,
       isGlobal: true,
     }),
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService<Config, true>) => ({
-        secret: configService.get<Config['jwt']>('jwt').secret,
+        secret: configService.get<Config['auth']>('auth').jwt.secret,
       }),
       global: true,
     }),
