@@ -10,7 +10,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Roles } from 'src/decorators/role.decorator';
 import { UserRequest } from 'src/interfaces/user_request.interface';
 import { Config } from 'src/schemas/config.schema';
-import { Role, RoleEnum, roleSchema } from 'src/schemas/role.schema';
+import { Role, RoleEnum } from 'src/schemas/role.schema';
 import { TokenPayload, tokenPayloadSchema } from 'src/schemas/token.schema';
 
 @Injectable()
