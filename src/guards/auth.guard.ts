@@ -40,7 +40,7 @@ export class AuthGuard implements CanActivate {
     const headerKey = this.config.get<Config['auth']>('auth').gatewayJwtHeader;
     const token = request.headers[headerKey]?.toString();
     if (!token) {
-      throw new UnauthorizedException('No token provided');
+      throw new UnauthorizedException('Invalid token');
     }
 
     const secret = this.config.get<Config['auth']>('auth').gatewayJwtSecret;
@@ -59,7 +59,7 @@ export class AuthGuard implements CanActivate {
     });
 
     if (!parsedTokenPayload.success) {
-      throw new UnauthorizedException('Invalid token payload');
+      throw new UnauthorizedException('Invalid token');
     }
     // Validate the Role
     const isValidRole = requiredRoles.some(
