@@ -10,7 +10,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Roles } from 'src/decorators/role.decorator';
 import { UserRequest } from 'src/interfaces/user_request.interface';
 import { Config } from 'src/schemas/config.schema';
-import { Role, RoleEnum } from 'src/schemas/role.schema';
+import { Role, RoleEnum, roleSchema } from 'src/schemas/role.schema';
 import { TokenPayload, tokenPayloadSchema } from 'src/schemas/token.schema';
 
 @Injectable()
@@ -37,56 +37,43 @@ export class AuthGuard implements CanActivate {
       return true;
     }
 
-    const authHeader = request.headers.authorization;
-    if (!authHeader) {
-      return false;
+    const headerKey = this.config.get<Config['auth']>('auth').gatewayJwtHeader;
+    const token = request.headers[headerKey]?.toString();
+    if (!token) {
+      throw new UnauthorizedException('No token provided');
     }
-    const payload = await this.jwtService.verifyAsync<TokenPayload>(
-      authHeader.split(' ')[1],
+
+    const secret = this.config.get<Config['auth']>('auth').gatewayJwtSecret;
+
+    const verifiedToken = await this.jwtService
+      .verifyAsync<TokenPayload>(token, {
+        secret,
+      })
+      .catch(() => {
+        throw new UnauthorizedException('Invalid token');
+      });
+
+    const parsedTokenPayload = await tokenPayloadSchema.safeParseAsync({
+      uuid: verifiedToken.uuid,
+      role: verifiedToken.role.toLowerCase(),
+    });
+
+    if (!parsedTokenPayload.success) {
+      throw new UnauthorizedException('Invalid token payload');
+    }
+    // Validate the Role
+    const isValidRole = requiredRoles.some(
+      (requiredRole) => requiredRole === parsedTokenPayload.data.role,
     );
-
-    // Uncomment the following lines to enable fallback token
-    //const fallbackToken = (request.headers['x-fallback-token'] ?? '')
-    //  .toString()
-    //  .split(' ')[1];
-
-    const parsedPayload = await tokenPayloadSchema.safeParseAsync(payload);
-
-    if (!parsedPayload.success) {
-      return false;
-    }
-    if (!requiredRoles.includes(parsedPayload.data.role)) {
+    if (!isValidRole) {
       return false;
     }
 
     // Set the user object to the request object
-    request.user = parsedPayload.data;
+    request.user = {
+      uuid: parsedTokenPayload.data.uuid,
+      role: parsedTokenPayload.data.role,
+    };
     return true;
-  }
-
-  async validateFallbackToken(token: string) {
-    const result = await fetch(
-      this.config.get<Config['auth']>('auth').mandacode.verifyTokenEndpoint,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
-
-    if (result.status !== 200) {
-      throw new UnauthorizedException('Invalid token');
-    }
-
-    const payload = (await result.json()) as TokenPayload;
-    const parsedPayload = await tokenPayloadSchema.safeParseAsync(payload);
-
-    if (!parsedPayload.success) {
-      throw new UnauthorizedException('Invalid token');
-    }
-
-    return parsedPayload.data;
   }
 }

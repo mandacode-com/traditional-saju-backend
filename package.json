@@ -1,6 +1,6 @@
 {
   "name": "saju-core",
-  "version": "0.0.4",
+  "version": "0.0.5-rc2",
   "description": "",
   "author": "",
   "private": true,
@@ -65,7 +65,12 @@
       "json",
       "ts"
     ],
-    "rootDir": "src",
+    "roots": [
+      "<rootDir>"
+    ],
+    "modulePaths": [
+      "<rootDir>"
+    ],
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
@@ -74,6 +79,9 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "setupFilesAfterEnv": [
+      "<rootDir>/test/jest.setup.ts"
+    ]
   }
 }
