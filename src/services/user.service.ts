@@ -1,10 +1,24 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
-import { DatingStatus, Gender, JobStatus } from '@prisma/client';
+import { DatingStatus, Gender, JobStatus, User } from '@prisma/client';
 
 @Injectable()
 export class UserService {
   constructor(private readonly prisma: PrismaService) {}
+
+  async createUserIfNotExists(uuid: string): Promise<User> {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        uuid,
+      },
+    });
+
+    if (user) {
+      return user;
+    }
+
+    return this.createUser({ uuid });
+  }
 
   async createUser(data: { uuid: string }) {
     return this.prisma.user.create({
