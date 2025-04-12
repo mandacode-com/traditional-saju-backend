@@ -1,15 +1,12 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { validate } from './config/validate';
-import { YearlySajuModule } from './modules/yearly_saju.module';
+import { YearlySajuModule } from './modules/saju/yearly_saju.module';
 import { AppController } from './app.controller';
-import { APP_GUARD } from '@nestjs/core';
-import { AuthGuard } from './guards/auth.guard';
-import { DailySajuModule } from './modules/daily_saju.module';
+import { DailySajuModule } from './modules/saju/daily_saju.module';
 import { DevController } from './dev.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { Config } from './schemas/config.schema';
-import { PrismaModule } from './modules/prisma.module';
 import { AuthModule } from './modules/auth.module';
 
 @Module({

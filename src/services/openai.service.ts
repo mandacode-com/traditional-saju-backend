@@ -8,12 +8,12 @@ import {
   DailySajuOpenAIResponse,
   DailySajuOpenAIResponseSchema,
   DailySajuRequest,
-} from 'src/schemas/daily_saju.schema';
+} from 'src/schemas/saju/daily_saju.schema';
 import {
   YearlySajuOpenAIResponse,
   YearlySajuOpenAIResponseSchema,
   YearlySajuRequest,
-} from 'src/schemas/yearly_saju.schema';
+} from 'src/schemas/saju/yearly_saju.schema';
 
 @Injectable()
 export class OpenAIService {

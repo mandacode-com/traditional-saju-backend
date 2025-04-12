@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { OpenAIModule } from './openai.module';
+import { OpenAIModule } from '../openai.module';
 import { DailySajuController } from 'src/controllers/daily_saju.controller';
-import { DailySajuService } from 'src/services/daily_saju.service';
-import { PrismaModule } from './prisma.module';
+import { DailySajuService } from 'src/services/saju/daily_saju.service';
+import { PrismaModule } from '../prisma.module';
 
 @Module({
   imports: [OpenAIModule, PrismaModule],

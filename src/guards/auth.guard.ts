@@ -57,7 +57,7 @@ export class AuthGuard implements CanActivate {
         secret,
       })
       .catch(() => {
-        Logger.error(`AuthGuard: Invalid token ${token}`, 'AuthGuard');
+        Logger.error(`AuthGuard: Invalid token`, 'AuthGuard');
         throw new UnauthorizedException('Invalid token');
       });
 

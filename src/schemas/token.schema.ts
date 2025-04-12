@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { roleSchema } from './role.schema';
 
 export const tokenPayloadSchema = z.object({
-  uuid: z.string().nonempty(),
+  uuid: z.string().uuid(),
   role: roleSchema,
 });
 

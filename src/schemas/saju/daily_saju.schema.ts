@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 export const DailySajuRequestSchema = z.object({
   gender: z.nativeEnum(Gender),
-  birthDateTime: z.date(),
+  birthDateTime: z.string().datetime(),
   datingStatus: z.nativeEnum(DatingStatus),
   jobStatus: z.nativeEnum(JobStatus),
   question: z.string().optional(),
