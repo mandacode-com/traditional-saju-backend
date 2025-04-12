@@ -3,12 +3,12 @@ import {
   EarthlyBranchSchema,
   FiveElementSchema,
   HeavenlyStemSchema,
-} from './saju.schema';
+} from './saju_base.schema';
 import { DatingStatus, Gender, JobStatus } from '@prisma/client';
 
 export const YearlySajuRequestSchema = z.object({
   gender: z.nativeEnum(Gender),
-  birthDateTime: z.date(),
+  birthDateTime: z.string().datetime(),
   birthTimeDisabled: z.boolean(),
   datingStatus: z.nativeEnum(DatingStatus),
   jobStatus: z.nativeEnum(JobStatus),
