@@ -14,7 +14,7 @@ export class DailySajuController {
   constructor(private readonly dailySajuService: DailySajuService) {}
 
   @Post()
-  @Roles([RoleEnum.USER, RoleEnum.ADMIN, RoleEnum.GUEST])
+  @Roles([RoleEnum.USER, RoleEnum.ADMIN])
   @HttpCode(200)
   async getDailySaju(
     @Body() body: DailySajuRequest,

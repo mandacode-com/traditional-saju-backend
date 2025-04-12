@@ -89,8 +89,9 @@ export const configSchema = z.object({
       }),
     }),
   }),
-  jwt: z.object({
-    secret: z.string().nonempty(),
+  auth: z.object({
+    gatewayJwtSecret: z.string().nonempty(),
+    gatewayJwtHeader: z.string().nonempty().default('x-gateway-jwt'),
   }),
 });
 
