@@ -9,6 +9,8 @@ import { DailySajuModule } from './modules/daily_saju.module';
 import { DevController } from './dev.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { Config } from './schemas/config.schema';
+import { PrismaModule } from './modules/prisma.module';
+import { AuthModule } from './modules/auth.module';
 
 @Module({
   imports: [
@@ -16,21 +18,17 @@ import { Config } from './schemas/config.schema';
       validate: validate,
       isGlobal: true,
     }),
-    YearlySajuModule,
-    DailySajuModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService<Config, true>) => ({
         secret: config.get<Config['auth']>('auth').gatewayJwtSecret,
         global: true,
       }),
+      global: true,
     }),
-  ],
-  providers: [
-    {
-      provide: APP_GUARD,
-      useClass: AuthGuard,
-    },
+    YearlySajuModule,
+    DailySajuModule,
+    AuthModule,
   ],
   controllers: [AppController, DevController],
 })
