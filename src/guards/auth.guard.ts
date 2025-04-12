@@ -13,6 +13,7 @@ import { UserRequest } from 'src/interfaces/user_request.interface';
 import { Config } from 'src/schemas/config.schema';
 import { Role, RoleEnum } from 'src/schemas/role.schema';
 import { TokenPayload, tokenPayloadSchema } from 'src/schemas/token.schema';
+import { PrismaService } from 'src/services/prisma.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -20,6 +21,7 @@ export class AuthGuard implements CanActivate {
     private readonly jwtService: JwtService,
     private readonly config: ConfigService<Config, true>,
     private readonly reflector: Reflector,
+    private readonly prisma: PrismaService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -79,6 +81,20 @@ export class AuthGuard implements CanActivate {
     );
     if (!isValidRole) {
       return false;
+    }
+
+    // Check if the user exists in the database
+    const user = await this.prisma.user.findUnique({
+      where: {
+        uuid: parsedTokenPayload.data.uuid,
+      },
+    });
+    if (!user) {
+      await this.prisma.user.create({
+        data: {
+          uuid: parsedTokenPayload.data.uuid,
+        },
+      });
     }
 
     // Set the user object to the request object

@@ -18,25 +18,8 @@ model User {
   uuid          String          @unique
   DailyFortune  DailyFortune[]
   YearlyFortune YearlyFortune[]
-  UserInfo      UserInfo?
 
   @@map("users")
-}
-
-model UserInfo {
-  id        Int           @id @default(autoincrement())
-  userId    Int           @unique @map("user_id")
-  user      User          @relation(fields: [userId], references: [id])
-  name      String?
-  gender    Gender?
-  age       Int?
-  birthdate DateTime?
-  dating    DatingStatus?
-  job       JobStatus?
-
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@map("user_infos")
 }
 
 model DailyFortune {

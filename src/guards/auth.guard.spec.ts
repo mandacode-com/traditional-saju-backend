@@ -6,6 +6,7 @@ import { RoleEnum } from 'src/schemas/role.schema';
 import { Config } from 'src/schemas/config.schema';
 import { JwtService } from '@nestjs/jwt';
 import { TokenPayload } from 'src/schemas/token.schema';
+import { PrismaService } from 'src/services/prisma.service';
 
 class TestAuthGuard extends AuthGuard {}
 
@@ -24,6 +25,11 @@ const mockConfigService = {
 const mockJwtService = {
   verifyAsync: jest.fn(() => Promise.resolve()),
 } as unknown as JwtService;
+const mockPrismaService = {
+  user: {
+    findUnique: jest.fn(),
+  },
+} as unknown as PrismaService;
 
 const createMockExecutionContext = (headers: Record<string, string>) => {
   return {
@@ -42,7 +48,12 @@ describe('AuthGuard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    guard = new TestAuthGuard(mockJwtService, mockConfigService, mockReflector);
+    guard = new TestAuthGuard(
+      mockJwtService,
+      mockConfigService,
+      mockReflector,
+      mockPrismaService,
+    );
   });
 
   describe('canActivate', () => {
@@ -112,6 +123,10 @@ describe('AuthGuard', () => {
         uuid: 'uuid',
         role: RoleEnum.USER,
       } as TokenPayload);
+      mockPrismaService.user.findUnique = jest.fn().mockResolvedValue({
+        uuid: 'uuid',
+        role: RoleEnum.USER,
+      });
       await expect(guard.canActivate(context)).resolves.toBe(true);
     });
   });
