@@ -3,6 +3,7 @@ import {
   CanActivate,
   ExecutionContext,
   UnauthorizedException,
+  Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
@@ -40,6 +41,10 @@ export class AuthGuard implements CanActivate {
     const headerKey = this.config.get<Config['auth']>('auth').gatewayJwtHeader;
     const token = request.headers[headerKey]?.toString();
     if (!token) {
+      Logger.error(
+        `AuthGuard: No token found in header ${headerKey}`,
+        'AuthGuard',
+      );
       throw new UnauthorizedException('Invalid token');
     }
 
@@ -50,6 +55,7 @@ export class AuthGuard implements CanActivate {
         secret,
       })
       .catch(() => {
+        Logger.error(`AuthGuard: Invalid token ${token}`, 'AuthGuard');
         throw new UnauthorizedException('Invalid token');
       });
 
@@ -59,6 +65,12 @@ export class AuthGuard implements CanActivate {
     });
 
     if (!parsedTokenPayload.success) {
+      Logger.error(
+        `AuthGuard: Invalid token payload ${JSON.stringify(
+          parsedTokenPayload.error,
+        )}`,
+        'AuthGuard',
+      );
       throw new UnauthorizedException('Invalid token');
     }
     // Validate the Role

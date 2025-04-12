@@ -14,7 +14,7 @@ export class YearlySajuController {
   constructor(private readonly yearlySajuService: YearlySajuService) {}
 
   @Post()
-  @Roles([RoleEnum.USER, RoleEnum.ADMIN, RoleEnum.GUEST])
+  @Roles([RoleEnum.USER, RoleEnum.ADMIN])
   @HttpCode(200)
   async getYearlySaju(
     @Body() form: YearlySajuRequest,
