@@ -26,11 +26,4 @@ export class UserController {
   async deleteUser(@User('uuid') uuid: string) {
     return this.userService.deleteUser({ uuid });
   }
-
-  @Patch('info')
-  @Roles([RoleEnum.ADMIN, RoleEnum.USER])
-  async saveUserInfo(@User('uuid') uuid: string, @Body() body: UpdateUser) {
-    const parsed = await updateUserSchema.parseAsync(body);
-    return this.userService.updateUserInfo(uuid, parsed);
-  }
 }

@@ -5,9 +5,10 @@ import {
   DailySajuRequest,
   DailySajuRequestSchema,
   DailySajuResponse,
-} from 'src/schemas/daily_saju.schema';
+} from 'src/schemas/saju/daily_saju.schema';
 import { RoleEnum } from 'src/schemas/role.schema';
-import { DailySajuService } from 'src/services/daily_saju.service';
+import { DailySajuService } from 'src/services/saju/daily_saju.service';
+import { ZodValidationPipe } from 'src/pipes/zod_validation.pipe';
 
 @Controller('daily')
 export class DailySajuController {
@@ -17,7 +18,7 @@ export class DailySajuController {
   @Roles([RoleEnum.USER, RoleEnum.ADMIN])
   @HttpCode(200)
   async getDailySaju(
-    @Body() body: DailySajuRequest,
+    @Body(new ZodValidationPipe(DailySajuRequestSchema)) body: DailySajuRequest,
     @User('uuid') uuid?: string,
   ): Promise<DailySajuResponse> {
     // Check if the user has already requested the daily saju
@@ -29,12 +30,8 @@ export class DailySajuController {
         return existing.fortune;
       }
     }
-    const parsed = await DailySajuRequestSchema.parseAsync({
-      ...body,
-      birthDateTime: new Date(body.birthDateTime),
-    });
     const response = await this.dailySajuService.getDailySaju({
-      request: parsed,
+      request: body,
     });
 
     // Save the response if the user is logged in
