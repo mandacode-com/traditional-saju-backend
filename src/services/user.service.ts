@@ -24,9 +24,6 @@ export class UserService {
     return this.prisma.user.create({
       data: {
         uuid: data.uuid,
-        UserInfo: {
-          create: {},
-        },
       },
     });
   }
@@ -43,36 +40,6 @@ export class UserService {
     return this.prisma.user.delete({
       where: {
         uuid: data.uuid,
-      },
-    });
-  }
-
-  async updateUserInfo(
-    uuid: string,
-    data: {
-      name?: string;
-      gender?: Gender;
-      birthDateTime?: Date;
-      age?: number;
-      dating?: DatingStatus;
-      job?: JobStatus;
-    },
-  ) {
-    return this.prisma.user.update({
-      where: {
-        uuid,
-      },
-      data: {
-        UserInfo: {
-          update: {
-            name: data.name,
-            gender: data.gender,
-            birthdate: data.birthDateTime,
-            age: data.age,
-            dating: data.dating,
-            job: data.job,
-          },
-        },
       },
     });
   }

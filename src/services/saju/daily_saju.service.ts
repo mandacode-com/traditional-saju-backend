@@ -1,12 +1,16 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { OpenAIService } from './openai.service';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
+import { OpenAIService } from '../openai.service';
 import {
   DailySajuOpenAIResponseSchema,
   DailySajuRequest,
   DailySajuResponse,
   DailySajuResponseSchema,
-} from 'src/schemas/daily_saju.schema';
-import { PrismaService } from './prisma.service';
+} from 'src/schemas/saju/daily_saju.schema';
+import { PrismaService } from '../prisma.service';
 import { DailyFortune } from '@prisma/client';
 
 @Injectable()
@@ -38,9 +42,14 @@ export class DailySajuService {
     if (!existingData) {
       return null;
     } else {
-      const parsedFortune = await DailySajuResponseSchema.parseAsync(
-        existingData.fortune,
-      ).catch((_err) => {
+      const existingDataFortune =
+        existingData.fortune as unknown as DailySajuResponse;
+      const birthDateTime = new Date(existingDataFortune.birthDateTime);
+      const parsedFortune = await DailySajuResponseSchema.parseAsync({
+        ...existingDataFortune,
+        birthDateTime,
+      }).catch((err) => {
+        Logger.error('Failed to parse response', err);
         throw new InternalServerErrorException('Failed to parse response');
       });
       return {
@@ -63,7 +72,7 @@ export class DailySajuService {
 
     const result: DailySajuResponse = {
       name: 'John Doe',
-      birthDateTime: data.request.birthDateTime,
+      birthDateTime: new Date(data.request.birthDateTime),
       gender: data.request.gender,
       ...parsed,
     };
