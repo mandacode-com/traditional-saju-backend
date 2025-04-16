@@ -1,8 +1,7 @@
-import { Body, Controller, Delete, Get, Patch, Post } from '@nestjs/common';
+import { Controller, Delete, Get, Post } from '@nestjs/common';
 import { Roles } from 'src/decorators/role.decorator';
 import { User } from 'src/decorators/user.decorator';
 import { RoleEnum } from 'src/schemas/role.schema';
-import { UpdateUser, updateUserSchema } from 'src/schemas/user.schema';
 import { UserService } from 'src/services/user.service';
 
 @Controller('user')

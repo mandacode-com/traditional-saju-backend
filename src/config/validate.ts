@@ -6,6 +6,17 @@ export function validate(raw: Record<string, unknown>) {
       nodeEnv: raw.NODE_ENV as string,
       port: parseInt((raw.PORT as string) || '3000'),
     },
+    kafka: {
+      app: {
+        client: {
+          clientId: raw.KAFKA_CLIENT_ID as string,
+          brokers: (raw.KAFKA_BROKERS as string).split(','),
+        },
+        consumer: {
+          groupId: raw.KAFKA_GROUP_ID as string,
+        },
+      },
+    },
     openai: {
       api_key: raw.OPENAI_API_KEY as string,
       system_message: {

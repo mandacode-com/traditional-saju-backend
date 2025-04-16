@@ -13,6 +13,18 @@ export const configSchema = z.object({
       .default('development'),
     port: z.number().int().positive().default(3000),
   }),
+  kafka: z.object({
+    app: z.object({
+      client: z.object({
+        clientId: z.string().nonempty().default('app'),
+        brokers: z.array(z.string().nonempty()),
+      }),
+      consumer: z.object({
+        groupId: z.string().nonempty().default('app-consumer'),
+      }),
+    }),
+  }),
+
   openai: z.object({
     api_key: z.string().nonempty(),
     system_message: z.object({
