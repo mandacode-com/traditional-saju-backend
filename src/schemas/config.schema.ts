@@ -13,14 +13,18 @@ export const configSchema = z.object({
       .default('development'),
     port: z.number().int().positive().default(3000),
   }),
-  kafka: z.object({
-    app: z.object({
-      client: z.object({
-        clientId: z.string().nonempty().default('app'),
-        brokers: z.array(z.string().nonempty()),
-      }),
-      consumer: z.object({
-        groupId: z.string().nonempty().default('app-consumer'),
+  eventBus: z.object({
+    client: z.object({
+      clientId: z.string().nonempty().default('saju.saju-core'),
+      brokers: z.array(z.string().nonempty()),
+    }),
+    consumer: z.object({
+      groupId: z.string().nonempty().default('saju.saju-core'),
+    }),
+    dlt: z.object({
+      retry: z.object({
+        maxAttempts: z.number().int().nonnegative().default(3),
+        delay: z.number().int().nonnegative().default(1000),
       }),
     }),
   }),

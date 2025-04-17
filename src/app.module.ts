@@ -8,6 +8,7 @@ import { DevController } from './dev.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { Config } from './schemas/config.schema';
 import { AuthModule } from './modules/auth.module';
+import { UserModule } from './modules/user.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { AuthModule } from './modules/auth.module';
       }),
       global: true,
     }),
+    UserModule,
     YearlySajuModule,
     DailySajuModule,
     AuthModule,

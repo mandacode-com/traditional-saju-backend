@@ -5,36 +5,30 @@ import { Config } from './schemas/config.schema';
 import { HttpExceptionFilter } from './filters/http_exception.filter';
 import { PrismaExceptionFilter } from './filters/prisma_exception.filter';
 import { ZodExceptionFilter } from './filters/zod_exception.filter';
-import { Transport } from '@nestjs/microservices';
+import { KafkaOptions, Transport } from '@nestjs/microservices';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const config = app.get(ConfigService<Config, true>);
 
   // app kafka transporter
-  app.connectMicroservice({
+  const eventBusConfig = config.get('eventBus', { infer: true });
+  app.connectMicroservice<KafkaOptions>({
     transport: Transport.KAFKA,
     options: {
       client: {
-        clientId: config.get('kafka', { infer: true }).app.client.clientId,
-        brokers: config.get('kafka', { infer: true }).app.client.brokers,
+        clientId: eventBusConfig.client.clientId,
+        brokers: eventBusConfig.client.brokers,
       },
       consumer: {
-        groupId: config.get('kafka', { infer: true }).app.consumer.groupId,
+        groupId: eventBusConfig.consumer.groupId,
+        retry: {
+          retries: 3,
+          initialRetryTime: 300,
+        },
       },
     },
   });
-
-  // LOGGER [NOT IMPLEMENTED]
-  // logger kafka transporter
-  //app.connectMicroservice({
-  //  transport: Transport.KAFKA,
-  //  options: {
-  //    client: {
-  //      brokers: [config.get<Config['kafka']>('kafka').logger.broker],
-  //    },
-  //  },
-  //});
 
   app.enableCors();
 

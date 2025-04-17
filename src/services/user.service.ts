@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
 import { User } from '@prisma/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class UserService {
@@ -37,10 +38,20 @@ export class UserService {
   }
 
   async deleteUser(data: { uuid: string }) {
-    return this.prisma.user.delete({
-      where: {
-        uuid: data.uuid,
-      },
-    });
+    return this.prisma.user
+      .delete({
+        where: {
+          uuid: data.uuid,
+        },
+      })
+      .catch((err) => {
+        if (
+          err instanceof PrismaClientKnownRequestError &&
+          err.code === 'P2025'
+        ) {
+          return null;
+        }
+        throw err;
+      });
   }
 }

@@ -3,6 +3,7 @@ import { RoleEnum } from './schemas/role.schema';
 import { Roles } from './decorators/role.decorator';
 import { User } from './decorators/user.decorator';
 import { Request } from 'express';
+import { EventPattern, MessagePattern, Payload } from '@nestjs/microservices';
 
 @Controller('/dev')
 export class DevController {
@@ -35,5 +36,10 @@ export class DevController {
     return {
       message: 'uuid has been printed on the console',
     };
+  }
+
+  @EventPattern('test.event')
+  getTestEvent(@Payload() message: { tid: string }) {
+    console.log(`Test event received: ${message.tid}`);
   }
 }
