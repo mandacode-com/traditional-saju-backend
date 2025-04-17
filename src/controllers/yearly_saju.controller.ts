@@ -28,7 +28,7 @@ export class YearlySajuController {
         userUuid: uuid,
       });
       if (existing) {
-        return existing.fortune;
+        return existing;
       }
     }
 

@@ -1,17 +1,19 @@
 import { z } from 'zod';
 import {
+  DatingStatusSchema,
   EarthlyBranchSchema,
   FiveElementSchema,
+  GenderSchema,
   HeavenlyStemSchema,
+  JobStatusSchema,
 } from './saju_base.schema';
-import { DatingStatus, Gender, JobStatus } from '@prisma/client';
 
 export const YearlySajuRequestSchema = z.object({
-  gender: z.nativeEnum(Gender),
+  gender: GenderSchema,
   birthDateTime: z.string().datetime(),
   birthTimeDisabled: z.boolean(),
-  datingStatus: z.nativeEnum(DatingStatus),
-  jobStatus: z.nativeEnum(JobStatus),
+  datingStatus: DatingStatusSchema,
+  jobStatus: JobStatusSchema,
   question: z.string().optional(),
 });
 export type YearlySajuRequest = z.infer<typeof YearlySajuRequestSchema>;
@@ -65,8 +67,8 @@ export type YearlySajuOpenAIResponse = z.infer<
 
 export const YearlySajuResponseSchema = z.object({
   name: z.string(),
-  birthDateTime: z.date(),
-  gender: z.nativeEnum(Gender),
+  birthDateTime: z.string().datetime(),
+  gender: GenderSchema,
   ...YearlySajuOpenAIResponseSchema.shape,
 });
 export type YearlySajuResponse = z.infer<typeof YearlySajuResponseSchema>;

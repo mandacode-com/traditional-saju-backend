@@ -11,11 +11,11 @@ import {
   DailySajuResponseSchema,
 } from 'src/schemas/saju/daily_saju.schema';
 import { PrismaService } from '../prisma.service';
-import { DailyFortune } from '@prisma/client';
+import { LastSaju, SajuType } from '@prisma/client';
 
 @Injectable()
 export class DailySajuService {
-  static version = 1;
+  static version = 1.0;
 
   constructor(
     private readonly openai: OpenAIService,
@@ -24,39 +24,30 @@ export class DailySajuService {
 
   async getExistingDailySaju(data: {
     userUuid: string;
-  }): Promise<
-    (Omit<DailyFortune, 'fortune'> & { fortune: DailySajuResponse }) | null
-  > {
-    const existingData = await this.prisma.dailyFortune.findFirst({
+  }): Promise<DailySajuResponse | null> {
+    const lastSaju = await this.prisma.lastSaju.findFirst({
       where: {
         user: {
           uuid: data.userUuid,
         },
+        type: SajuType.DAILY,
         version: DailySajuService.version,
-        createdAt: {
+        updatedAt: {
           gte: new Date(new Date().setHours(0, 0, 0, 0)),
         },
       },
     });
-
-    if (!existingData) {
+    if (!lastSaju) {
       return null;
-    } else {
-      const existingDataFortune =
-        existingData.fortune as unknown as DailySajuResponse;
-      const birthDateTime = new Date(existingDataFortune.birthDateTime);
-      const parsedFortune = await DailySajuResponseSchema.parseAsync({
-        ...existingDataFortune,
-        birthDateTime,
-      }).catch((err) => {
-        Logger.error('Failed to parse response', err);
-        throw new InternalServerErrorException('Failed to parse response');
-      });
-      return {
-        ...existingData,
-        fortune: parsedFortune,
-      };
     }
+    const parsed = await DailySajuResponseSchema.parseAsync(
+      lastSaju.data,
+    ).catch((err) => {
+      Logger.error(err, 'DailySajuService');
+      throw new InternalServerErrorException('Failed to parse response');
+    });
+
+    return parsed;
   }
 
   async getDailySaju(data: {
@@ -66,13 +57,14 @@ export class DailySajuService {
 
     const parsed = await DailySajuOpenAIResponseSchema.parseAsync(
       respone,
-    ).catch((_err) => {
+    ).catch((err) => {
+      Logger.error(err, 'DailySajuService');
       throw new InternalServerErrorException('Failed to parse response');
     });
 
     const result: DailySajuResponse = {
       name: 'John Doe',
-      birthDateTime: new Date(data.request.birthDateTime),
+      birthDateTime: data.request.birthDateTime,
       gender: data.request.gender,
       ...parsed,
     };
@@ -89,22 +81,34 @@ export class DailySajuService {
   async saveDailySaju(data: {
     data: DailySajuResponse;
     userUuid: string;
-  }): Promise<DailyFortune> {
-    const parsed = await DailySajuResponseSchema.parseAsync(data.data).catch(
-      (_err) => {
-        throw new InternalServerErrorException('Failed to parse response');
+  }): Promise<LastSaju> {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        uuid: data.userUuid,
       },
-    );
-    return this.prisma.dailyFortune.create({
-      data: {
+    });
+    if (!user) {
+      throw new InternalServerErrorException('User not found');
+    }
+    return this.prisma.lastSaju.upsert({
+      where: {
+        userId_type: {
+          userId: user.id,
+          type: SajuType.DAILY,
+        },
+      },
+      create: {
         user: {
           connect: {
             uuid: data.userUuid,
           },
         },
+        type: SajuType.DAILY,
         version: DailySajuService.version,
-        fortune: parsed,
-        createdAt: new Date(),
+        data: data.data,
+      },
+      update: {
+        data: data.data,
       },
     });
   }

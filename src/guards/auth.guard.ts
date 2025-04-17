@@ -8,6 +8,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
+import { randomUUID } from 'crypto';
 import { Roles } from 'src/decorators/role.decorator';
 import { UserRequest } from 'src/interfaces/user_request.interface';
 import { Config } from 'src/schemas/config.schema';

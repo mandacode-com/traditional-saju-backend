@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, Logger, Post } from '@nestjs/common';
 import { Roles } from 'src/decorators/role.decorator';
 import { User } from 'src/decorators/user.decorator';
 import {
@@ -27,7 +27,7 @@ export class DailySajuController {
         userUuid: uuid,
       });
       if (existing) {
-        return existing.fortune;
+        return existing;
       }
     }
     const response = await this.dailySajuService.getDailySaju({
