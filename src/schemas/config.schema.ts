@@ -28,7 +28,6 @@ export const configSchema = z.object({
       }),
     }),
   }),
-
   openai: z.object({
     api_key: z.string().nonempty(),
     system_message: z.object({
