@@ -27,7 +27,7 @@ model DailyFortune {
   version   Float    @default(1.0)
   fortune   Json
   userId    Int      @map("user_id")
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("daily_fortunes")
@@ -38,7 +38,7 @@ model YearlyFortune {
   version   Float    @default(1.0)
   fortune   Json
   userId    Int      @map("user_id")
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("yearly_fortunes")
