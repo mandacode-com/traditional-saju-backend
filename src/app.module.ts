@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { validate } from './config/validate';
-import { YearlySajuModule } from './modules/saju/yearly_saju.module';
 import { AppController } from './app.controller';
-import { DailySajuModule } from './modules/saju/daily_saju.module';
 import { DevController } from './dev.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { Config } from './schemas/config.schema';
 import { AuthModule } from './modules/auth.module';
+import { UserModule } from './modules/user.module';
+import { SajuModule } from './modules/saju.module';
 
 @Module({
   imports: [
@@ -23,9 +23,9 @@ import { AuthModule } from './modules/auth.module';
       }),
       global: true,
     }),
-    YearlySajuModule,
-    DailySajuModule,
+    UserModule,
     AuthModule,
+    SajuModule,
   ],
   controllers: [AppController, DevController],
 })

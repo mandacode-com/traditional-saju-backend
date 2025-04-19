@@ -11,59 +11,47 @@ import {
   YearlySajuResponseSchema,
 } from 'src/schemas/saju/yearly_saju.schema';
 import { PrismaService } from '../prisma.service';
-import { YearlyFortune } from '@prisma/client';
+import { LatestSaju, SajuType } from '@prisma/client';
 
 @Injectable()
 export class YearlySajuService {
-  static version = 1;
+  static version = 1.0;
 
   constructor(
     private readonly openai: OpenAIService,
     private readonly prisma: PrismaService,
   ) {}
 
-  async getExistingYearlySaju(data: {
-    userUuid: string;
-  }): Promise<
-    (Omit<YearlyFortune, 'fortune'> & { fortune: YearlySajuResponse }) | null
-  > {
-    const existingData = await this.prisma.yearlyFortune.findFirst({
+  async getExistingYearlySaju(
+    userUuid: string,
+  ): Promise<YearlySajuResponse | null> {
+    const lastSaju = await this.prisma.latestSaju.findFirst({
       where: {
-        user: {
-          uuid: data.userUuid,
-        },
+        userUuid: userUuid,
+        type: SajuType.YEARLY,
         version: YearlySajuService.version,
-        createdAt: {
-          gte: new Date(new Date().getFullYear(), 0, 0),
+        updatedAt: {
+          gte: new Date(new Date().setFullYear(new Date().getFullYear(), 0, 1)),
+          lte: new Date(
+            new Date().setFullYear(new Date().getFullYear(), 11, 31),
+          ),
         },
       },
     });
-
-    if (!existingData) {
+    if (!lastSaju) {
       return null;
-    } else {
-      // change fortune birthDateTime to Date
-      const existingDataFortune =
-        existingData.fortune as unknown as YearlySajuResponse;
-      const birthDateTime = new Date(existingDataFortune.birthDateTime);
-      const parsedFortune = await YearlySajuResponseSchema.parseAsync({
-        ...existingDataFortune,
-        birthDateTime,
-      }).catch((err) => {
-        Logger.error('Failed to parse response', err);
-        throw new InternalServerErrorException('Failed to parse response');
-      });
-      return {
-        ...existingData,
-        fortune: parsedFortune,
-      };
     }
+    const parsed = await YearlySajuResponseSchema.parseAsync(
+      lastSaju.data,
+    ).catch((_err) => {
+      throw new InternalServerErrorException('Failed to parse response');
+    });
+
+    return parsed;
   }
 
-  async getYearlySaju(data: {
-    request: YearlySajuRequest;
-  }): Promise<YearlySajuResponse> {
-    const respone = await this.openai.getYearlySaju(data.request);
+  async getYearlySaju(request: YearlySajuRequest): Promise<YearlySajuResponse> {
+    const respone = await this.openai.getYearlySaju(request);
 
     const parsed = await YearlySajuOpenAIResponseSchema.parseAsync(
       respone,
@@ -73,14 +61,15 @@ export class YearlySajuService {
 
     const result: YearlySajuResponse = {
       name: 'John Doe',
-      birthDateTime: new Date(data.request.birthDateTime),
-      gender: data.request.gender,
+      birthDateTime: request.birthDateTime,
+      gender: request.gender,
       ...parsed,
     };
 
     const parsedResult = await YearlySajuResponseSchema.parseAsync(
       result,
-    ).catch((_err) => {
+    ).catch((err) => {
+      Logger.error(err, 'YearlySajuService');
       throw new InternalServerErrorException('Failed to parse response');
     });
 
@@ -90,22 +79,22 @@ export class YearlySajuService {
   async saveYearlySaju(data: {
     data: YearlySajuResponse;
     userUuid: string;
-  }): Promise<YearlyFortune> {
-    const parsed = await YearlySajuResponseSchema.parseAsync(data.data).catch(
-      (_err) => {
-        throw new InternalServerErrorException('Failed to parse response');
-      },
-    );
-    return this.prisma.yearlyFortune.create({
-      data: {
-        user: {
-          connect: {
-            uuid: data.userUuid,
-          },
+  }): Promise<LatestSaju> {
+    return this.prisma.latestSaju.upsert({
+      where: {
+        userUuid_type: {
+          userUuid: data.userUuid,
+          type: SajuType.YEARLY,
         },
+      },
+      create: {
+        userUuid: data.userUuid,
+        type: SajuType.YEARLY,
         version: YearlySajuService.version,
-        fortune: parsed,
-        createdAt: new Date(),
+        data: data.data,
+      },
+      update: {
+        data: data.data,
       },
     });
   }

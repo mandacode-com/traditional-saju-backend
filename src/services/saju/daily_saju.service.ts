@@ -11,69 +11,62 @@ import {
   DailySajuResponseSchema,
 } from 'src/schemas/saju/daily_saju.schema';
 import { PrismaService } from '../prisma.service';
-import { DailyFortune } from '@prisma/client';
+import { LatestSaju, SajuType } from '@prisma/client';
 
 @Injectable()
 export class DailySajuService {
-  static version = 1;
+  static version = 1.0;
 
   constructor(
     private readonly openai: OpenAIService,
     private readonly prisma: PrismaService,
   ) {}
 
-  async getExistingDailySaju(data: {
-    userUuid: string;
-  }): Promise<
-    (Omit<DailyFortune, 'fortune'> & { fortune: DailySajuResponse }) | null
-  > {
-    const existingData = await this.prisma.dailyFortune.findFirst({
+  async getExistingData(userUuid: string): Promise<DailySajuResponse | null> {
+    const lastSaju = await this.prisma.latestSaju.findUnique({
       where: {
-        user: {
-          uuid: data.userUuid,
+        userUuid_type: {
+          userUuid: userUuid,
+          type: SajuType.DAILY,
         },
         version: DailySajuService.version,
-        createdAt: {
+        updatedAt: {
           gte: new Date(new Date().setHours(0, 0, 0, 0)),
         },
       },
     });
-
-    if (!existingData) {
+    if (!lastSaju) {
       return null;
-    } else {
-      const existingDataFortune =
-        existingData.fortune as unknown as DailySajuResponse;
-      const birthDateTime = new Date(existingDataFortune.birthDateTime);
-      const parsedFortune = await DailySajuResponseSchema.parseAsync({
-        ...existingDataFortune,
-        birthDateTime,
-      }).catch((err) => {
-        Logger.error('Failed to parse response', err);
-        throw new InternalServerErrorException('Failed to parse response');
-      });
-      return {
-        ...existingData,
-        fortune: parsedFortune,
-      };
     }
+    const parsed = await DailySajuResponseSchema.parseAsync(
+      lastSaju.data,
+    ).catch((err) => {
+      Logger.error(err, 'DailySajuService');
+      throw new InternalServerErrorException('Failed to parse response');
+    });
+
+    return parsed;
   }
 
-  async getDailySaju(data: {
-    request: DailySajuRequest;
-  }): Promise<DailySajuResponse> {
-    const respone = await this.openai.getDailySaju(data.request);
+  /**
+   * Reads the daily saju from OpenAI and parses the response.
+   * @param data - DailySajuRequest
+   * @returns DailySajuResponse
+   */
+  async readSaju(request: DailySajuRequest): Promise<DailySajuResponse> {
+    const respone = await this.openai.getDailySaju(request);
 
     const parsed = await DailySajuOpenAIResponseSchema.parseAsync(
       respone,
-    ).catch((_err) => {
+    ).catch((err) => {
+      Logger.error(err, 'DailySajuService');
       throw new InternalServerErrorException('Failed to parse response');
     });
 
     const result: DailySajuResponse = {
       name: 'John Doe',
-      birthDateTime: new Date(data.request.birthDateTime),
-      gender: data.request.gender,
+      birthDateTime: request.birthDateTime,
+      gender: request.gender,
       ...parsed,
     };
 
@@ -87,24 +80,24 @@ export class DailySajuService {
   }
 
   async saveDailySaju(data: {
-    data: DailySajuResponse;
+    result: DailySajuResponse;
     userUuid: string;
-  }): Promise<DailyFortune> {
-    const parsed = await DailySajuResponseSchema.parseAsync(data.data).catch(
-      (_err) => {
-        throw new InternalServerErrorException('Failed to parse response');
-      },
-    );
-    return this.prisma.dailyFortune.create({
-      data: {
-        user: {
-          connect: {
-            uuid: data.userUuid,
-          },
+  }): Promise<LatestSaju> {
+    return this.prisma.latestSaju.upsert({
+      where: {
+        userUuid_type: {
+          userUuid: data.userUuid,
+          type: SajuType.DAILY,
         },
+      },
+      create: {
+        userUuid: data.userUuid,
+        type: SajuType.DAILY,
         version: DailySajuService.version,
-        fortune: parsed,
-        createdAt: new Date(),
+        data: data.result,
+      },
+      update: {
+        data: data.result,
       },
     });
   }

@@ -13,50 +13,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id            Int             @id @default(autoincrement())
-  uuid          String          @unique
-  DailyFortune  DailyFortune[]
-  YearlyFortune YearlyFortune[]
-
-  @@map("users")
-}
-
-model DailyFortune {
+model LatestSaju {
   id        Int      @id @default(autoincrement())
+  uuid      String   @unique @default(uuid())
+  userUuid  String   @map("user_uuid")
   version   Float    @default(1.0)
-  fortune   Json
-  userId    Int      @map("user_id")
-  user      User     @relation(fields: [userId], references: [id])
+  type      SajuType
+  data      Json     @db.JsonB
   createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("daily_fortunes")
+  @@unique([userUuid, type])
+  @@map("latest_saju")
 }
 
-model YearlyFortune {
-  id        Int      @id @default(autoincrement())
-  version   Float    @default(1.0)
-  fortune   Json
-  userId    Int      @map("user_id")
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@map("yearly_fortunes")
-}
-
-enum Gender {
-  male
-  female
-}
-
-enum DatingStatus {
-  single
-  dating
-  married
-}
-
-enum JobStatus {
-  student
-  working
-  unemployed
+enum SajuType {
+  DAILY
+  YEARLY
 }

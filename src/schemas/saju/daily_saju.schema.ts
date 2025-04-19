@@ -1,11 +1,15 @@
-import { DatingStatus, Gender, JobStatus } from '@prisma/client';
 import { z } from 'zod';
+import {
+  DatingStatusSchema,
+  GenderSchema,
+  JobStatusSchema,
+} from './saju_base.schema';
 
 export const DailySajuRequestSchema = z.object({
-  gender: z.nativeEnum(Gender),
+  gender: GenderSchema,
   birthDateTime: z.string().datetime(),
-  datingStatus: z.nativeEnum(DatingStatus),
-  jobStatus: z.nativeEnum(JobStatus),
+  datingStatus: DatingStatusSchema,
+  jobStatus: JobStatusSchema,
   question: z.string().optional(),
 });
 export type DailySajuRequest = z.infer<typeof DailySajuRequestSchema>;
@@ -28,8 +32,8 @@ export type DailySajuOpenAIResponse = z.infer<
 
 export const DailySajuResponseSchema = z.object({
   name: z.string(),
-  birthDateTime: z.date(),
-  gender: z.nativeEnum(Gender),
+  birthDateTime: z.string().datetime(),
+  gender: GenderSchema,
   ...DailySajuOpenAIResponseSchema.shape,
 });
 export type DailySajuResponse = z.infer<typeof DailySajuResponseSchema>;
