@@ -26,7 +26,7 @@ export class UserController {
       'UserController',
     );
     await this.userService
-      .deleteUser({ uuid: message.uuid })
+      .deleteUser(message.uuid)
       .catch(async (err: Error) => {
         await this.kafkaService.emit(USER_DELETE_ERROR_TOPIC, {
           originTopic: USER_DELETE_TOPIC,
@@ -59,7 +59,7 @@ export class UserController {
         await new Promise((resolve) =>
           setTimeout(resolve, this.dltConfig.retry.delay),
         );
-        await this.userService.deleteUser({ uuid: message.data.uuid });
+        await this.userService.deleteUser(message.data.uuid);
         Logger.log(
           `Successfully deleted user with UUID ${message.data.uuid} after retry ${message.retries}`,
           'UserController',
