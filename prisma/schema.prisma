@@ -13,26 +13,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id       Int        @id @default(autoincrement())
-  uuid     String     @unique
-  LastSaju LastSaju[]
-
-  @@map("users")
-}
-
-model LastSaju {
+model LatestSaju {
   id        Int      @id @default(autoincrement())
+  uuid      String   @unique @default(uuid())
+  userUuid  String   @map("user_uuid")
   version   Float    @default(1.0)
   type      SajuType
   data      Json     @db.JsonB
-  userId    Int      @map("user_id")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@unique([userId, type])
-  @@map("last_saju")
+  @@unique([userUuid, type])
+  @@map("latest_saju")
 }
 
 enum SajuType {
