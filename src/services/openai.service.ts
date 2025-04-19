@@ -14,6 +14,7 @@ import {
   YearlySajuOpenAIResponseSchema,
   YearlySajuRequest,
 } from 'src/schemas/saju/yearly_saju.schema';
+import { generateScore } from 'src/utils/generateScore';
 
 @Injectable()
 export class OpenAIService {
@@ -250,6 +251,7 @@ export class OpenAIService {
   }
 
   async getDailySaju(form: DailySajuRequest): Promise<DailySajuOpenAIResponse> {
+    const score = generateScore();
     const response = await this.openAI.beta.chat.completions.parse({
       model: this.chatModel,
       messages: [
@@ -259,11 +261,14 @@ export class OpenAIService {
         },
         {
           role: 'user',
-          content: JSON.stringify(form),
+          content: JSON.stringify({
+            ...form,
+            score,
+          }),
         },
       ],
       response_format: zodResponseFormat(
-        DailySajuOpenAIResponseSchema,
+        DailySajuOpenAIResponseSchema.omit({ fortuneScore: true }),
         'DailySajuResponse',
       ),
     });
@@ -272,9 +277,10 @@ export class OpenAIService {
       throw new InternalServerErrorException('Failed to get response');
     }
 
-    const parsedResponse = DailySajuOpenAIResponseSchema.parse(
-      response.choices[0].message.parsed,
-    );
+    const parsedResponse = DailySajuOpenAIResponseSchema.parse({
+      ...response.choices[0].message.parsed,
+      fortuneScore: score,
+    });
 
     return {
       ...parsedResponse,

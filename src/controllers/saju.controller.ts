@@ -32,21 +32,17 @@ export class SajuController {
   ): Promise<DailySajuResponse> {
     // Check if the user has already requested the daily saju
     if (uuid) {
-      const existing = await this.dailySajuService.getExistingDailySaju({
-        userUuid: uuid,
-      });
+      const existing = await this.dailySajuService.getExistingData(uuid);
       if (existing) {
         return existing;
       }
     }
-    const response = await this.dailySajuService.getDailySaju({
-      request: body,
-    });
+    const response = await this.dailySajuService.readSaju(body);
 
     // Save the response if the user is logged in
     if (uuid) {
       await this.dailySajuService.saveDailySaju({
-        data: response,
+        result: response,
         userUuid: uuid,
       });
     }
@@ -63,17 +59,13 @@ export class SajuController {
   ): Promise<YearlySajuResponse> {
     // Check if the user has already requested the yearly saju
     if (uuid) {
-      const existing = await this.yearlySajuService.getExistingYearlySaju({
-        userUuid: uuid,
-      });
+      const existing = await this.yearlySajuService.getExistingYearlySaju(uuid);
       if (existing) {
         return existing;
       }
     }
 
-    const response = await this.yearlySajuService.getYearlySaju({
-      request: body,
-    });
+    const response = await this.yearlySajuService.getYearlySaju(body);
 
     // Save the response if the user is logged in
     if (uuid) {

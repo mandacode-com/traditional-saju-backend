@@ -11,7 +11,7 @@ import {
   YearlySajuResponseSchema,
 } from 'src/schemas/saju/yearly_saju.schema';
 import { PrismaService } from '../prisma.service';
-import { SajuType } from '@prisma/client';
+import { LatestSaju, SajuType } from '@prisma/client';
 
 @Injectable()
 export class YearlySajuService {
@@ -22,14 +22,12 @@ export class YearlySajuService {
     private readonly prisma: PrismaService,
   ) {}
 
-  async getExistingYearlySaju(data: {
-    userUuid: string;
-  }): Promise<YearlySajuResponse | null> {
-    const lastSaju = await this.prisma.lastSaju.findFirst({
+  async getExistingYearlySaju(
+    userUuid: string,
+  ): Promise<YearlySajuResponse | null> {
+    const lastSaju = await this.prisma.latestSaju.findFirst({
       where: {
-        user: {
-          uuid: data.userUuid,
-        },
+        userUuid: userUuid,
         type: SajuType.YEARLY,
         version: YearlySajuService.version,
         updatedAt: {
@@ -52,10 +50,8 @@ export class YearlySajuService {
     return parsed;
   }
 
-  async getYearlySaju(data: {
-    request: YearlySajuRequest;
-  }): Promise<YearlySajuResponse> {
-    const respone = await this.openai.getYearlySaju(data.request);
+  async getYearlySaju(request: YearlySajuRequest): Promise<YearlySajuResponse> {
+    const respone = await this.openai.getYearlySaju(request);
 
     const parsed = await YearlySajuOpenAIResponseSchema.parseAsync(
       respone,
@@ -65,8 +61,8 @@ export class YearlySajuService {
 
     const result: YearlySajuResponse = {
       name: 'John Doe',
-      birthDateTime: data.request.birthDateTime,
-      gender: data.request.gender,
+      birthDateTime: request.birthDateTime,
+      gender: request.gender,
       ...parsed,
     };
 
@@ -83,31 +79,23 @@ export class YearlySajuService {
   async saveYearlySaju(data: {
     data: YearlySajuResponse;
     userUuid: string;
-  }): Promise<YearlySajuResponse> {
-    const parsed = await YearlySajuResponseSchema.parseAsync(data.data).catch(
-      (err) => {
-        Logger.error(err, 'YearlySajuService');
-        throw new InternalServerErrorException('Failed to parse response');
+  }): Promise<LatestSaju> {
+    return this.prisma.latestSaju.upsert({
+      where: {
+        userUuid_type: {
+          userUuid: data.userUuid,
+          type: SajuType.YEARLY,
+        },
       },
-    );
-
-    const lastSaju = await this.prisma.lastSaju.create({
-      data: {
+      create: {
+        userUuid: data.userUuid,
         type: SajuType.YEARLY,
         version: YearlySajuService.version,
-        user: {
-          connect: {
-            uuid: data.userUuid,
-          },
-        },
-        data: parsed,
+        data: data.data,
+      },
+      update: {
+        data: data.data,
       },
     });
-
-    if (!lastSaju) {
-      throw new InternalServerErrorException('Failed to save response');
-    }
-
-    return parsed;
   }
 }

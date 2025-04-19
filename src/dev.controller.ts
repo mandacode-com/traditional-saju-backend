@@ -3,7 +3,7 @@ import { RoleEnum } from './schemas/role.schema';
 import { Roles } from './decorators/role.decorator';
 import { User } from './decorators/user.decorator';
 import { Request } from 'express';
-import { EventPattern, MessagePattern, Payload } from '@nestjs/microservices';
+import { EventPattern, Payload } from '@nestjs/microservices';
 
 @Controller('/dev')
 export class DevController {

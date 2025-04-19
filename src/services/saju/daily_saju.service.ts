@@ -11,7 +11,7 @@ import {
   DailySajuResponseSchema,
 } from 'src/schemas/saju/daily_saju.schema';
 import { PrismaService } from '../prisma.service';
-import { LastSaju, SajuType } from '@prisma/client';
+import { LatestSaju, SajuType } from '@prisma/client';
 
 @Injectable()
 export class DailySajuService {
@@ -22,15 +22,13 @@ export class DailySajuService {
     private readonly prisma: PrismaService,
   ) {}
 
-  async getExistingDailySaju(data: {
-    userUuid: string;
-  }): Promise<DailySajuResponse | null> {
-    const lastSaju = await this.prisma.lastSaju.findFirst({
+  async getExistingData(userUuid: string): Promise<DailySajuResponse | null> {
+    const lastSaju = await this.prisma.latestSaju.findUnique({
       where: {
-        user: {
-          uuid: data.userUuid,
+        userUuid_type: {
+          userUuid: userUuid,
+          type: SajuType.DAILY,
         },
-        type: SajuType.DAILY,
         version: DailySajuService.version,
         updatedAt: {
           gte: new Date(new Date().setHours(0, 0, 0, 0)),
@@ -50,10 +48,13 @@ export class DailySajuService {
     return parsed;
   }
 
-  async getDailySaju(data: {
-    request: DailySajuRequest;
-  }): Promise<DailySajuResponse> {
-    const respone = await this.openai.getDailySaju(data.request);
+  /**
+   * Reads the daily saju from OpenAI and parses the response.
+   * @param data - DailySajuRequest
+   * @returns DailySajuResponse
+   */
+  async readSaju(request: DailySajuRequest): Promise<DailySajuResponse> {
+    const respone = await this.openai.getDailySaju(request);
 
     const parsed = await DailySajuOpenAIResponseSchema.parseAsync(
       respone,
@@ -64,8 +65,8 @@ export class DailySajuService {
 
     const result: DailySajuResponse = {
       name: 'John Doe',
-      birthDateTime: data.request.birthDateTime,
-      gender: data.request.gender,
+      birthDateTime: request.birthDateTime,
+      gender: request.gender,
       ...parsed,
     };
 
@@ -79,36 +80,24 @@ export class DailySajuService {
   }
 
   async saveDailySaju(data: {
-    data: DailySajuResponse;
+    result: DailySajuResponse;
     userUuid: string;
-  }): Promise<LastSaju> {
-    const user = await this.prisma.user.findUnique({
+  }): Promise<LatestSaju> {
+    return this.prisma.latestSaju.upsert({
       where: {
-        uuid: data.userUuid,
-      },
-    });
-    if (!user) {
-      throw new InternalServerErrorException('User not found');
-    }
-    return this.prisma.lastSaju.upsert({
-      where: {
-        userId_type: {
-          userId: user.id,
+        userUuid_type: {
+          userUuid: data.userUuid,
           type: SajuType.DAILY,
         },
       },
       create: {
-        user: {
-          connect: {
-            uuid: data.userUuid,
-          },
-        },
+        userUuid: data.userUuid,
         type: SajuType.DAILY,
         version: DailySajuService.version,
-        data: data.data,
+        data: data.result,
       },
       update: {
-        data: data.data,
+        data: data.result,
       },
     });
   }
