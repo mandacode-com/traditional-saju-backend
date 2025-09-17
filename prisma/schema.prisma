@@ -6,6 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -15,15 +16,15 @@ datasource db {
 
 model LatestSaju {
   id        Int      @id @default(autoincrement())
-  uuid      String   @unique @default(uuid())
-  userUuid  String   @map("user_uuid")
+  publicID  String   @unique @default(uuid()) @map("public_id")
+  userID    String   @map("user_id")
   version   Float    @default(1.0)
   type      SajuType
   data      Json     @db.JsonB
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@unique([userUuid, type])
+  @@unique([userID, type])
   @@map("latest_saju")
 }
 
