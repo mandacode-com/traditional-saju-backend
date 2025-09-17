@@ -11,7 +11,7 @@ import {
   YearlySajuResponseSchema,
 } from 'src/schemas/saju/yearly_saju.schema';
 import { PrismaService } from '../prisma.service';
-import { LatestSaju, SajuType } from '@prisma/client';
+import { LatestSaju, SajuType } from '@prisma';
 
 @Injectable()
 export class YearlySajuService {
@@ -27,7 +27,7 @@ export class YearlySajuService {
   ): Promise<YearlySajuResponse | null> {
     const lastSaju = await this.prisma.latestSaju.findFirst({
       where: {
-        userUuid: userUuid,
+        userID: userUuid,
         type: SajuType.YEARLY,
         version: YearlySajuService.version,
         updatedAt: {
@@ -82,13 +82,13 @@ export class YearlySajuService {
   }): Promise<LatestSaju> {
     return this.prisma.latestSaju.upsert({
       where: {
-        userUuid_type: {
-          userUuid: data.userUuid,
+        userID_type: {
+          userID: data.userUuid,
           type: SajuType.YEARLY,
         },
       },
       create: {
-        userUuid: data.userUuid,
+        userID: data.userUuid,
         type: SajuType.YEARLY,
         version: YearlySajuService.version,
         data: data.data,

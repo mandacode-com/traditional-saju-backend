@@ -2,19 +2,19 @@ import { Body, Controller, HttpCode, Post } from '@nestjs/common';
 import { Roles } from 'src/decorators/role.decorator';
 import { User } from 'src/decorators/user.decorator';
 import {
-  DailySajuRequest,
   DailySajuRequestSchema,
   DailySajuResponse,
 } from 'src/schemas/saju/daily_saju.schema';
+import type { DailySajuRequest } from 'src/schemas/saju/daily_saju.schema';
 import { RoleEnum } from 'src/schemas/role.schema';
 import { DailySajuService } from 'src/services/saju/daily_saju.service';
 import { ZodValidationPipe } from 'src/pipes/zod_validation.pipe';
 import { YearlySajuService } from 'src/services/saju/yearly_saju.service';
 import {
-  YearlySajuRequest,
   YearlySajuRequestSchema,
   YearlySajuResponse,
 } from 'src/schemas/saju/yearly_saju.schema';
+import type { YearlySajuRequest } from 'src/schemas/saju/yearly_saju.schema';
 
 @Controller('read')
 export class SajuController {

@@ -11,7 +11,7 @@ import {
   DailySajuResponseSchema,
 } from 'src/schemas/saju/daily_saju.schema';
 import { PrismaService } from '../prisma.service';
-import { LatestSaju, SajuType } from '@prisma/client';
+import { LatestSaju, SajuType } from '@prisma';
 
 @Injectable()
 export class DailySajuService {
@@ -25,8 +25,8 @@ export class DailySajuService {
   async getExistingData(userUuid: string): Promise<DailySajuResponse | null> {
     const lastSaju = await this.prisma.latestSaju.findUnique({
       where: {
-        userUuid_type: {
-          userUuid: userUuid,
+        userID_type: {
+          userID: userUuid,
           type: SajuType.DAILY,
         },
         version: DailySajuService.version,
@@ -85,13 +85,13 @@ export class DailySajuService {
   }): Promise<LatestSaju> {
     return this.prisma.latestSaju.upsert({
       where: {
-        userUuid_type: {
-          userUuid: data.userUuid,
+        userID_type: {
+          userID: data.userUuid,
           type: SajuType.DAILY,
         },
       },
       create: {
-        userUuid: data.userUuid,
+        userID: data.userUuid,
         type: SajuType.DAILY,
         version: DailySajuService.version,
         data: data.result,

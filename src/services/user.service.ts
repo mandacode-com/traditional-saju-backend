@@ -8,7 +8,7 @@ export class UserService {
   async deleteUser(userUuid: string) {
     await this.prisma.latestSaju.deleteMany({
       where: {
-        userUuid: userUuid,
+        userID: userUuid,
       },
     });
   }

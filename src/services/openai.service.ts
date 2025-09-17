@@ -40,7 +40,7 @@ export class OpenAIService {
   async getYearlySaju(
     form: YearlySajuRequest,
   ): Promise<YearlySajuOpenAIResponse> {
-    const chart = await this.openAI.beta.chat.completions
+    const chart = await this.openAI.chat.completions
       .parse({
         model: this.chatModel,
         messages: [
@@ -252,7 +252,7 @@ export class OpenAIService {
 
   async getDailySaju(form: DailySajuRequest): Promise<DailySajuOpenAIResponse> {
     const score = generateScore();
-    const response = await this.openAI.beta.chat.completions.parse({
+    const response = await this.openAI.chat.completions.parse({
       model: this.chatModel,
       messages: [
         {
