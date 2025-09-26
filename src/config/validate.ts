@@ -19,6 +19,16 @@ export function validate(raw: Record<string, unknown>) {
       clientId: raw.SSAM_CLIENT_ID as string,
       clientSecret: raw.SSAM_CLIENT_SECRET as string,
     },
+    token: {
+      accessTokenSecret: raw.ACCESS_TOKEN_SECRET as string,
+      refreshTokenSecret: raw.REFRESH_TOKEN_SECRET as string,
+      accessTokenExpiresIn: parseIntIfExists(
+        raw.ACCESS_TOKEN_EXPIRES_IN as string,
+      ) as number,
+      refreshTokenExpiresIn: parseIntIfExists(
+        raw.REFRESH_TOKEN_EXPIRES_IN as string,
+      ) as number,
+    },
     openai: {
       api_key: raw.OPENAI_API_KEY as string,
       system_message: {
