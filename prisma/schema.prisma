@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -14,21 +13,32 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model LatestSaju {
+model User {
+  id         Int          @id @default(autoincrement())
+  publicID   String       @unique @map("public_id")
+  nickname   String       @unique
+  email      String       @unique
+  createdAt  DateTime     @default(now()) @map("created_at")
+  updatedAt  DateTime     @updatedAt @map("updated_at")
+  SajuRecord SajuRecord[]
+
+  @@map("users")
+}
+
+model SajuRecord {
   id        Int      @id @default(autoincrement())
   publicID  String   @unique @default(uuid()) @map("public_id")
-  userID    String   @map("user_id")
-  version   Float    @default(1.0)
-  type      SajuType
   data      Json     @db.JsonB
+  version   Float    @default(1.0)
   createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@unique([userID, type])
-  @@map("latest_saju")
+  user   User @relation(fields: [userId], references: [id])
+  userId Int  @map("user_id")
+
+  @@map("saju_records")
 }
 
 enum SajuType {
-  DAILY
-  YEARLY
+  DAILY_NORMAL
+  NEW_YEAR
 }
