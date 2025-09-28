@@ -6,7 +6,7 @@ import {
   GenderSchema,
   HeavenlyStemSchema,
   JobStatusSchema,
-} from './saju_base.schema';
+} from './saju-base.type';
 
 export const YearlySajuRequestSchema = z.object({
   gender: GenderSchema,

@@ -3,7 +3,7 @@ import {
   DatingStatusSchema,
   GenderSchema,
   JobStatusSchema,
-} from './saju_base.schema';
+} from './saju-base.type';
 
 export const DailySajuRequestSchema = z.object({
   gender: GenderSchema,
