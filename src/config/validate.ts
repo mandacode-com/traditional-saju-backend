@@ -1,4 +1,4 @@
-import { Config, configSchema } from 'src/schemas/config.schema';
+import { Config, configSchema } from 'src/config/config.schema';
 
 const parseIntIfExists = (value: string | undefined) => {
   if (value === undefined) {
@@ -14,11 +14,6 @@ export function validate(raw: Record<string, unknown>) {
       nodeEnv: raw.NODE_ENV as string,
       port: parseIntIfExists(raw.PORT as string) as number,
     },
-    ssam: {
-      baseUrl: raw.SSAM_BASE_URL as string,
-      clientId: raw.SSAM_CLIENT_ID as string,
-      clientSecret: raw.SSAM_CLIENT_SECRET as string,
-    },
     token: {
       accessTokenSecret: raw.ACCESS_TOKEN_SECRET as string,
       refreshTokenSecret: raw.REFRESH_TOKEN_SECRET as string,
@@ -28,6 +23,20 @@ export function validate(raw: Record<string, unknown>) {
       refreshTokenExpiresIn: parseIntIfExists(
         raw.REFRESH_TOKEN_EXPIRES_IN as string,
       ) as number,
+    },
+    redis: {
+      host: (raw.REDIS_HOST as string) || 'localhost',
+      port: parseIntIfExists(raw.REDIS_PORT as string) || 6379,
+      password: raw.REDIS_PASSWORD as string | undefined,
+    },
+    idp: {
+      baseUrl: raw.IDP_BASE_URL as string,
+      clientId: raw.IDP_CLIENT_ID as string,
+      clientSecret: raw.IDP_CLIENT_SECRET as string,
+    },
+    score: {
+      mean: parseIntIfExists(raw.SCORE_MEAN as string) ?? 70,
+      stdDev: parseIntIfExists(raw.SCORE_STD_DEV as string) ?? 10,
     },
     openai: {
       api_key: raw.OPENAI_API_KEY as string,
