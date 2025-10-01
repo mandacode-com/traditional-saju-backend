@@ -23,7 +23,10 @@ export class UserService {
 
     if (existing) {
       // Update nickname and email if changed
-      if (existing.nickname !== data.nickname || existing.email !== data.email) {
+      if (
+        existing.nickname !== data.nickname ||
+        existing.email !== data.email
+      ) {
         return this.prisma.user.update({
           where: { publicID: data.publicID },
           data: {
