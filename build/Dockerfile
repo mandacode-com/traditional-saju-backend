@@ -1,7 +1,7 @@
 # =============================
 # 1. Build Stage
 # =============================
-FROM node:23-alpine AS builder
+FROM node:24-alpine AS builder
 
 # Set working directory
 WORKDIR /app
@@ -27,7 +27,7 @@ RUN npm run build
 # =============================
 # 2. Prune Stage (Remove Dev Dependencies)
 # =============================
-FROM node:23-alpine AS pruner
+FROM node:24-alpine AS pruner
 
 WORKDIR /app
 
@@ -48,15 +48,14 @@ COPY --from=builder /app/prisma ./prisma
 # =============================
 # 3. Final Runtime Stage
 # =============================
-FROM node:23-alpine AS runtime
+FROM node:24-alpine AS runtime
 
 WORKDIR /app
 
 # Set non-root user for security
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-USER appuser
 
-# Copy built app and production dependencies
+# Copy built app and production dependencies (before switching user)
 COPY --from=pruner /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY package.json ./
@@ -67,6 +66,12 @@ COPY --from=pruner /app/node_modules/@prisma ./node_modules/@prisma
 
 # Copy Prisma migrations
 COPY --from=pruner /app/prisma ./prisma
+
+# Change ownership of application files
+RUN chown -R appuser:appgroup /app
+
+# Switch to non-root user
+USER appuser
 
 # Set environment variables
 ENV PORT=3000

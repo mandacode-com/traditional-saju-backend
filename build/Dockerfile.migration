@@ -1,37 +1,14 @@
-FROM node:23-alpine AS builder
+FROM node:24-alpine
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
-RUN npm ci --only=production
+# Install Prisma CLI and create non-root user in single layer
+RUN npm install -g prisma@6.16.2 && \
+    npm cache clean --force && \
+    adduser -D -u 1001 migrations
 
 # Copy Prisma schema and migrations
-COPY prisma ./prisma
-
-# Generate Prisma Client
-RUN npx prisma generate
-
-# =============================
-# Final Runtime Stage
-# =============================
-FROM node:23-alpine
-
-WORKDIR /app
-
-# Create non-root user
-RUN adduser -D -u 1001 migrations
-
-# Copy Prisma Client and migrations from builder
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/prisma ./prisma
-
-# Change ownership to non-root user
-RUN chown -R 1001:1001 /app
+COPY --chown=1001:1001 prisma ./prisma
 
 # Switch to non-root user
 USER 1001
@@ -42,7 +19,7 @@ ENTRYPOINT ["/bin/sh", "-c", "\
     echo '❌ DATABASE_URL is not set'; \
     exit 1; \
   fi && \
-  echo '🚀 Running migrations...' && \
-  npx prisma migrate deploy && \
-  echo '✅ Migrations completed successfully' \
+  echo 'Running migrations...' && \
+  prisma migrate deploy && \
+  echo 'Migrations completed successfully' \
   "]
