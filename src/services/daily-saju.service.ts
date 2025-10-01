@@ -4,15 +4,15 @@ import {
   Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { SajuRecord, SajuType } from '@prisma/client';
+import { SajuType } from '@prisma/client';
 import { Config } from '../config/config.schema';
 import { ScoreService } from './score.service';
 import { OpenAIService } from './openai.service';
 import { PrismaService } from './prisma.service';
 import {
   DailySajuRequest,
-  DailySajuResponse,
-  DailySajuResponseSchema,
+  DailySajuResult,
+  DailySajuResultSchema,
   DailySajuOpenAIResponseSchema,
 } from './types/daily-saju.type';
 
@@ -20,7 +20,7 @@ import {
 export class DailySajuService {
   static version = 1.0;
 
-  private dailyConfig: Config['openai']['system_message']['daily'];
+  private systemMsg: Config['openai']['system_message']['daily'];
 
   constructor(
     private readonly openai: OpenAIService,
@@ -28,37 +28,22 @@ export class DailySajuService {
     private readonly scoreService: ScoreService,
     private readonly config: ConfigService<Config, true>,
   ) {
-    this.dailyConfig =
+    this.systemMsg =
       this.config.get<Config['openai']>('openai').system_message.daily;
   }
 
-  async getExistingData(userUuid: string): Promise<DailySajuResponse | null> {
-    const today = new Date();
-    const startOfToday = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate(),
-    );
-    const endOfToday = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate(),
-      23,
-      59,
-      59,
-      999,
-    );
-
-    const lastSaju = await this.prisma.sajuRecord.findFirst({
+  async readSaju(request: DailySajuRequest): Promise<DailySajuResult> {
+    const score = this.scoreService.generateScore();
+    const existing = await this.prisma.sajuRecord.findFirst({
       where: {
         user: {
-          publicID: userUuid,
+          publicID: request.userId,
         },
         type: SajuType.DAILY_NORMAL,
         version: DailySajuService.version,
         createdAt: {
-          gte: startOfToday,
-          lte: endOfToday,
+          gte: new Date(new Date().setHours(0, 0, 0, 0)),
+          lte: new Date(new Date().setHours(23, 59, 59, 999)),
         },
       },
       orderBy: {
@@ -66,33 +51,24 @@ export class DailySajuService {
       },
     });
 
-    if (!lastSaju) {
-      return null;
+    // If existing record found, return it
+    if (existing) {
+      const parsed = await DailySajuResultSchema.parseAsync(
+        existing.data,
+      ).catch((err) => {
+        Logger.error(err, 'DailySajuService');
+        throw new InternalServerErrorException('Failed to parse response');
+      });
+
+      return parsed;
     }
 
-    const parsed = await DailySajuResponseSchema.parseAsync(
-      lastSaju.data,
-    ).catch((err) => {
-      Logger.error(err, 'DailySajuService');
-      throw new InternalServerErrorException('Failed to parse response');
-    });
-
-    return parsed;
-  }
-
-  /**
-   * Reads the daily saju from OpenAI and parses the response.
-   * @param data - DailySajuRequest
-   * @returns DailySajuResponse
-   */
-  async readSaju(request: DailySajuRequest): Promise<DailySajuResponse> {
-    const score = this.scoreService.generateScore();
-
+    // If existing record not found, create a new one
     const response = await this.openai.createStructuredCompletion({
       messages: [
         {
           role: 'system',
-          content: this.dailyConfig.all,
+          content: this.systemMsg.all,
         },
         {
           role: 'user',
@@ -102,50 +78,43 @@ export class DailySajuService {
           }),
         },
       ],
-      schema: DailySajuOpenAIResponseSchema.omit({ fortuneScore: true }),
+      schema: DailySajuOpenAIResponseSchema,
       schemaName: 'DailySajuResponse',
     });
 
-    const parsed = await DailySajuOpenAIResponseSchema.parseAsync({
-      ...response,
-      fortuneScore: score,
-    }).catch((err) => {
-      Logger.error(err, 'DailySajuService');
-      throw new InternalServerErrorException('Failed to parse response');
-    });
-
-    const result: DailySajuResponse = {
-      name: 'John Doe',
-      birthDateTime: request.birthDateTime,
+    const targetData: DailySajuResult = {
+      name: request.userName,
       gender: request.gender,
-      ...parsed,
-      questionAnswer: request.question ? parsed.questionAnswer : undefined,
+      fortuneScore: score,
+      relationship: response.relationship,
+      health: response.health,
+      romantic: response.romantic,
+      totalFortuneMessage: response.totalFortuneMessage,
+      todayShortMessage: response.todayShortMessage,
+      wealth: response.wealth,
+      caution: response.caution,
+      birthDateTime: request.birthDateTime,
+      questionAnswer: request.question ? response.questionAnswer : undefined,
     };
-
-    const parsedResult = await DailySajuResponseSchema.parseAsync(result).catch(
+    const parsed = await DailySajuResultSchema.parseAsync(targetData).catch(
       (err) => {
-        throw new InternalServerErrorException(err);
+        Logger.error(err, 'DailySajuService');
+        throw new InternalServerErrorException('Failed to parse response');
       },
     );
 
-    return parsedResult;
-  }
-
-  async saveDailySaju(data: {
-    result: DailySajuResponse;
-    userUuid: string;
-  }): Promise<SajuRecord> {
-    return this.prisma.sajuRecord.create({
+    // Save the result to the database
+    await this.prisma.sajuRecord.create({
       data: {
         user: {
-          connect: {
-            publicID: data.userUuid,
-          },
+          connect: { publicID: request.userId },
         },
         type: SajuType.DAILY_NORMAL,
         version: DailySajuService.version,
-        data: data.result,
+        data: parsed,
       },
     });
+
+    return parsed;
   }
 }

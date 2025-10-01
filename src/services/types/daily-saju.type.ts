@@ -6,6 +6,8 @@ import {
 } from './saju-base.type';
 
 export const DailySajuRequestSchema = z.object({
+  userId: z.string().uuid(),
+  userName: z.string().min(1).max(20),
   gender: GenderSchema,
   birthDateTime: z.string().datetime(),
   datingStatus: DatingStatusSchema,
@@ -16,7 +18,6 @@ export type DailySajuRequest = z.infer<typeof DailySajuRequestSchema>;
 
 export const DailySajuOpenAIResponseSchema = z.object({
   todayShortMessage: z.string(),
-  fortuneScore: z.number(),
   totalFortuneMessage: z.string(),
   relationship: z.string(),
   wealth: z.string(),
@@ -30,10 +31,11 @@ export type DailySajuOpenAIResponse = z.infer<
   typeof DailySajuOpenAIResponseSchema
 >;
 
-export const DailySajuResponseSchema = z.object({
+export const DailySajuResultSchema = z.object({
   name: z.string(),
   birthDateTime: z.string().datetime(),
   gender: GenderSchema,
+  fortuneScore: z.number(),
   ...DailySajuOpenAIResponseSchema.shape,
 });
-export type DailySajuResponse = z.infer<typeof DailySajuResponseSchema>;
+export type DailySajuResult = z.infer<typeof DailySajuResultSchema>;
