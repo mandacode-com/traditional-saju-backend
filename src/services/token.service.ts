@@ -27,8 +27,8 @@ export class TokenService {
     this.refreshTokenExpiresIn = tokenConfig.refreshTokenExpiresIn;
   }
 
-  async issueToken(userID: string) {
-    const accessTokenPayload: AccessTokenPayload = { userID };
+  async issueToken(userID: string, userName: string) {
+    const accessTokenPayload: AccessTokenPayload = { userID, userName };
     const refreshTokenPayload: RefreshTokenPayload = { userID };
 
     const accessToken = await this.jwt.signAsync(accessTokenPayload, {

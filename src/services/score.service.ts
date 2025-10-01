@@ -1,6 +1,8 @@
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Config } from 'src/config/config.schema';
 
+@Injectable()
 export class ScoreService {
   private mean: number;
   private stdDev: number;
