@@ -1,8 +1,8 @@
 {
-  "name": "saju",
+  "name": "traditional-saju",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "Traditional Saju API Service",
+  "author": "sauce",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
