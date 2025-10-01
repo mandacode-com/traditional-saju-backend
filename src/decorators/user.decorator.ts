@@ -7,8 +7,8 @@ export interface UserPayload {
 
 export const User = createParamDecorator(
   (data: keyof UserPayload | undefined, ctx: ExecutionContext) => {
-    const request = ctx.switchToHttp().getRequest();
-    const user = request.user as UserPayload | undefined;
+    const request = ctx.switchToHttp().getRequest<{ user?: UserPayload }>();
+    const user = request.user;
 
     if (!user) {
       return null;
