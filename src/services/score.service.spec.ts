@@ -4,7 +4,6 @@ import { ScoreService } from './score.service';
 
 describe('ScoreService', () => {
   let service: ScoreService;
-  let configService: ConfigService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -23,7 +22,6 @@ describe('ScoreService', () => {
     }).compile();
 
     service = module.get<ScoreService>(ScoreService);
-    configService = module.get<ConfigService>(ConfigService);
   });
 
   it('should be defined', () => {

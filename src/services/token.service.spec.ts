@@ -6,8 +6,6 @@ import { TokenService } from './token.service';
 
 describe('TokenService', () => {
   let service: TokenService;
-  let jwtService: JwtService;
-  let redis: Redis;
 
   const mockConfigService = {
     get: jest.fn().mockReturnValue({
@@ -49,8 +47,6 @@ describe('TokenService', () => {
     }).compile();
 
     service = module.get<TokenService>(TokenService);
-    jwtService = module.get<JwtService>(JwtService);
-    redis = module.get<Redis>(Redis);
 
     // Reset all mocks before each test
     jest.clearAllMocks();
