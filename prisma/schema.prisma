@@ -29,6 +29,7 @@ model SajuRecord {
   id        Int      @id @default(autoincrement())
   publicID  String   @unique @default(uuid()) @map("public_id")
   data      Json     @db.JsonB
+  type      SajuType @map("type")
   version   Float    @default(1.0)
   createdAt DateTime @default(now()) @map("created_at")
 
