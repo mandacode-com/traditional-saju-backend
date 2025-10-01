@@ -34,6 +34,21 @@ export class DailySajuService {
 
   async readSaju(request: DailySajuRequest): Promise<DailySajuResult> {
     const score = this.scoreService.generateScore();
+    const currentDate = new Date();
+    const startOfDay = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      currentDate.getDate(),
+    );
+    const endOfDay = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      currentDate.getDate(),
+      23,
+      59,
+      59,
+      999,
+    );
     const existing = await this.prisma.sajuRecord.findFirst({
       where: {
         user: {
@@ -42,8 +57,8 @@ export class DailySajuService {
         type: SajuType.DAILY_NORMAL,
         version: DailySajuService.version,
         createdAt: {
-          gte: new Date(new Date().setHours(0, 0, 0, 0)),
-          lte: new Date(new Date().setHours(23, 59, 59, 999)),
+          gte: startOfDay,
+          lte: endOfDay,
         },
       },
       orderBy: {

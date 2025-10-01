@@ -4,11 +4,12 @@ import {
   Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { SajuRecord, SajuType } from '@prisma/client';
+import { SajuType } from '@prisma/client';
 import { Config } from '../config/config.schema';
 import { OpenAIService } from './openai.service';
 import { PrismaService } from './prisma.service';
 import {
+  YearlySajuOpenAIResponse,
   YearlySajuOpenAIResponseSchema,
   YearlySajuRequest,
   YearlySajuResponse,
@@ -30,17 +31,15 @@ export class YearlySajuService {
       this.config.get<Config['openai']>('openai').system_message.yearly;
   }
 
-  async getExistingYearlySaju(
-    userUuid: string,
-  ): Promise<YearlySajuResponse | null> {
+  async readSaju(request: YearlySajuRequest): Promise<YearlySajuResponse> {
     const currentYear = new Date().getFullYear();
     const startOfYear = new Date(currentYear, 0, 1);
     const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59, 999);
 
-    const lastSaju = await this.prisma.sajuRecord.findFirst({
+    const existing = await this.prisma.sajuRecord.findFirst({
       where: {
         user: {
-          publicID: userUuid,
+          publicID: request.userId,
         },
         type: SajuType.NEW_YEAR,
         version: YearlySajuService.version,
@@ -54,21 +53,19 @@ export class YearlySajuService {
       },
     });
 
-    if (!lastSaju) {
-      return null;
+    // If existing record found, return it
+    if (existing) {
+      const parsed = await YearlySajuResponseSchema.parseAsync(
+        existing.data,
+      ).catch((err) => {
+        Logger.error(err, 'YearlySajuService');
+        throw new InternalServerErrorException('Failed to parse response');
+      });
+
+      return parsed;
     }
 
-    const parsed = await YearlySajuResponseSchema.parseAsync(
-      lastSaju.data,
-    ).catch((err) => {
-      Logger.error(err, 'YearlySajuService');
-      throw new InternalServerErrorException('Failed to parse response');
-    });
-
-    return parsed;
-  }
-
-  async getYearlySaju(request: YearlySajuRequest): Promise<YearlySajuResponse> {
+    // If existing record not found, create a new one
     // Step 1: Generate chart
     const chart = await this.openai.createStructuredCompletion({
       messages: [
@@ -202,7 +199,7 @@ export class YearlySajuService {
     });
 
     const result: YearlySajuResponse = {
-      name: 'John Doe',
+      name: request.userName,
       birthDateTime: request.birthDateTime,
       gender: request.gender,
       ...parsed,
@@ -215,24 +212,18 @@ export class YearlySajuService {
       throw new InternalServerErrorException('Failed to parse response');
     });
 
-    return parsedResult;
-  }
-
-  async saveYearlySaju(data: {
-    data: YearlySajuResponse;
-    userUuid: string;
-  }): Promise<SajuRecord> {
-    return this.prisma.sajuRecord.create({
+    // Save the result to the database
+    await this.prisma.sajuRecord.create({
       data: {
         user: {
-          connect: {
-            publicID: data.userUuid,
-          },
+          connect: { publicID: request.userId },
         },
         type: SajuType.NEW_YEAR,
         version: YearlySajuService.version,
-        data: data.data,
+        data: parsedResult,
       },
     });
+
+    return parsedResult;
   }
 }
