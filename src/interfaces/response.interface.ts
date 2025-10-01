@@ -1,10 +1,8 @@
-export interface ResponseData<T = unknown> {
+export interface ResponseError {
   message: string;
-  data?: T;
+  data: {
+    error: string;
+    path: string;
+    timestamp: string;
+  };
 }
-
-export type ResponseError = ResponseData<{
-  error: string;
-  path: string;
-  timestamp: string;
-}>;

@@ -1,0 +1,17 @@
+apiVersion: v2
+name: traditional-saju
+description: A Helm chart for Traditional Saju API Service
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+
+keywords:
+  - api
+  - nestjs
+  - saju
+  - traditional
+  - backend
+
+maintainers:
+  - name: Traditional Saju Team
+    email: dev@traditionalsaju.com

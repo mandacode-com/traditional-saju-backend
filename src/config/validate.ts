@@ -1,4 +1,4 @@
-import { Config, configSchema } from 'src/schemas/config.schema';
+import { Config, configSchema } from 'src/config/config.schema';
 
 const parseIntIfExists = (value: string | undefined) => {
   if (value === undefined) {
@@ -14,26 +14,29 @@ export function validate(raw: Record<string, unknown>) {
       nodeEnv: raw.NODE_ENV as string,
       port: parseIntIfExists(raw.PORT as string) as number,
     },
-    eventBus: {
-      client: {
-        clientId: raw.EVENT_BUS_CLIENT_ID as string,
-        brokers: ((raw.EVENT_BUS_BROKERS as string | undefined) ?? '').split(
-          ',',
-        ),
-      },
-      consumer: {
-        groupId: raw.EVENT_BUS_GROUP_ID as string,
-      },
-      dlt: {
-        retry: {
-          maxAttempts: parseIntIfExists(
-            raw.EVENT_BUS_DLT_RETRY_MAX_ATTEMPTS as string,
-          ) as number,
-          delay: parseIntIfExists(
-            raw.EVENT_BUS_DLT_RETRY_DELAY as string,
-          ) as number,
-        },
-      },
+    token: {
+      accessTokenSecret: raw.ACCESS_TOKEN_SECRET as string,
+      refreshTokenSecret: raw.REFRESH_TOKEN_SECRET as string,
+      accessTokenExpiresIn: parseIntIfExists(
+        raw.ACCESS_TOKEN_EXPIRES_IN as string,
+      ) as number,
+      refreshTokenExpiresIn: parseIntIfExists(
+        raw.REFRESH_TOKEN_EXPIRES_IN as string,
+      ) as number,
+    },
+    redis: {
+      host: (raw.REDIS_HOST as string) || 'localhost',
+      port: parseIntIfExists(raw.REDIS_PORT as string) || 6379,
+      password: raw.REDIS_PASSWORD as string | undefined,
+    },
+    idp: {
+      baseUrl: raw.IDP_BASE_URL as string,
+      clientId: raw.IDP_CLIENT_ID as string,
+      clientSecret: raw.IDP_CLIENT_SECRET as string,
+    },
+    score: {
+      mean: parseIntIfExists(raw.SCORE_MEAN as string) ?? 70,
+      stdDev: parseIntIfExists(raw.SCORE_STD_DEV as string) ?? 10,
     },
     openai: {
       api_key: raw.OPENAI_API_KEY as string,
@@ -56,10 +59,6 @@ export function validate(raw: Record<string, unknown>) {
             raw.OPENAI_SYSTEM_MESSAGE_YEARLY_QUESTION_ANSWER as string,
         },
       },
-    },
-    auth: {
-      gatewayJwtSecret: raw.AUTH_GATEWAY_JWT_SECRET as string,
-      gatewayJwtHeader: raw.AUTH_GATEWAY_JWT_HEADER as string,
     },
   };
 

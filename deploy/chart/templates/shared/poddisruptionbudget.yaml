@@ -1,0 +1,13 @@
+{{- if .Values.podDisruptionBudget.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "traditional-saju.fullname" . }}-pdb
+  labels:
+    {{- include "traditional-saju.labels" . | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "traditional-saju.selectorLabels" . | nindent 6 }}
+{{- end }}

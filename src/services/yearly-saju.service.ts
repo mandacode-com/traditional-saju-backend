@@ -1,0 +1,229 @@
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { SajuType } from '@prisma/client';
+import { Config } from '../config/config.schema';
+import { OpenAIService } from './openai.service';
+import { PrismaService } from './prisma.service';
+import {
+  YearlySajuOpenAIResponse,
+  YearlySajuOpenAIResponseSchema,
+  YearlySajuRequest,
+  YearlySajuResponse,
+  YearlySajuResponseSchema,
+} from './types/yearly-saju.type';
+
+@Injectable()
+export class YearlySajuService {
+  static version = 1.0;
+
+  private yearlyConfig: Config['openai']['system_message']['yearly'];
+
+  constructor(
+    private readonly openai: OpenAIService,
+    private readonly prisma: PrismaService,
+    private readonly config: ConfigService<Config, true>,
+  ) {
+    this.yearlyConfig =
+      this.config.get<Config['openai']>('openai').system_message.yearly;
+  }
+
+  async readSaju(request: YearlySajuRequest): Promise<YearlySajuResponse> {
+    const currentYear = new Date().getFullYear();
+    const startOfYear = new Date(currentYear, 0, 1);
+    const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59, 999);
+
+    const existing = await this.prisma.sajuRecord.findFirst({
+      where: {
+        user: {
+          publicID: request.userId,
+        },
+        type: SajuType.NEW_YEAR,
+        version: YearlySajuService.version,
+        createdAt: {
+          gte: startOfYear,
+          lte: endOfYear,
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    // If existing record found, return it
+    if (existing) {
+      const parsed = await YearlySajuResponseSchema.parseAsync(
+        existing.data,
+      ).catch((err) => {
+        Logger.error(err, 'YearlySajuService');
+        throw new InternalServerErrorException('Failed to parse response');
+      });
+
+      return parsed;
+    }
+
+    // If existing record not found, create a new one
+    // Step 1: Generate chart
+    const chart = await this.openai.createStructuredCompletion({
+      messages: [
+        {
+          role: 'system',
+          content: this.yearlyConfig.chart,
+        },
+        {
+          role: 'user',
+          content: JSON.stringify(request),
+        },
+      ],
+      schema: YearlySajuOpenAIResponseSchema.shape.chart,
+      schemaName: 'YearlySajuChart',
+    });
+
+    // Handle birth time disabled
+    if (request.birthTimeDisabled) {
+      chart.earthly.branches.hour = undefined;
+      chart.earthly.fiveElements.hour = undefined;
+      chart.heavenly.stems.hour = undefined;
+      chart.heavenly.fiveElements.hour = undefined;
+    }
+
+    const userChartInfo = {
+      user: {
+        datingStatus: request.datingStatus,
+        birthDateTime: request.birthDateTime,
+        gender: request.gender,
+        jobStatus: request.jobStatus,
+      },
+      chart,
+    };
+
+    // Step 2: Generate all descriptions in parallel
+    const descriptions = await this.openai.createMultipleCompletions([
+      {
+        messages: [
+          { role: 'system', content: this.yearlyConfig.general },
+          { role: 'user', content: JSON.stringify(userChartInfo) },
+        ],
+      },
+      {
+        messages: [
+          { role: 'system', content: this.yearlyConfig.relationship },
+          { role: 'user', content: JSON.stringify(userChartInfo) },
+        ],
+      },
+      {
+        messages: [
+          { role: 'system', content: this.yearlyConfig.wealth },
+          { role: 'user', content: JSON.stringify(userChartInfo) },
+        ],
+      },
+      {
+        messages: [
+          { role: 'system', content: this.yearlyConfig.romantic },
+          { role: 'user', content: JSON.stringify(userChartInfo) },
+        ],
+      },
+      {
+        messages: [
+          { role: 'system', content: this.yearlyConfig.health },
+          { role: 'user', content: JSON.stringify(userChartInfo) },
+        ],
+      },
+      {
+        messages: [
+          { role: 'system', content: this.yearlyConfig.career },
+          { role: 'user', content: JSON.stringify(userChartInfo) },
+        ],
+      },
+      {
+        messages: [
+          { role: 'system', content: this.yearlyConfig.waysToImprove },
+          { role: 'user', content: JSON.stringify(userChartInfo) },
+        ],
+      },
+      {
+        messages: [
+          { role: 'system', content: this.yearlyConfig.caution },
+          { role: 'user', content: JSON.stringify(userChartInfo) },
+        ],
+      },
+      {
+        messages: [
+          { role: 'system', content: this.yearlyConfig.questionAnswer },
+          {
+            role: 'user',
+            content: JSON.stringify({
+              ...userChartInfo,
+              question: request.question,
+            }),
+          },
+        ],
+      },
+    ]);
+
+    const [
+      general,
+      relationship,
+      wealth,
+      romantic,
+      health,
+      career,
+      waysToImprove,
+      caution,
+      questionAnswer,
+    ] = descriptions;
+
+    const response: YearlySajuOpenAIResponse = {
+      chart,
+      description: {
+        general,
+        relationship,
+        wealth,
+        romantic,
+        health,
+        career,
+        waysToImprove,
+        caution,
+        questionAnswer: request.question ? questionAnswer : undefined,
+      },
+    };
+
+    const parsed = await YearlySajuOpenAIResponseSchema.parseAsync(
+      response,
+    ).catch((err) => {
+      Logger.error(err, 'YearlySajuService');
+      throw new InternalServerErrorException('Failed to parse response');
+    });
+
+    const result: YearlySajuResponse = {
+      name: request.userName,
+      birthDateTime: request.birthDateTime,
+      gender: request.gender,
+      ...parsed,
+    };
+
+    const parsedResult = await YearlySajuResponseSchema.parseAsync(
+      result,
+    ).catch((err) => {
+      Logger.error(err, 'YearlySajuService');
+      throw new InternalServerErrorException('Failed to parse response');
+    });
+
+    // Save the result to the database
+    await this.prisma.sajuRecord.create({
+      data: {
+        user: {
+          connect: { publicID: request.userId },
+        },
+        type: SajuType.NEW_YEAR,
+        version: YearlySajuService.version,
+        data: parsedResult,
+      },
+    });
+
+    return parsedResult;
+  }
+}

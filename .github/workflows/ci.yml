@@ -1,0 +1,288 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: "24"
+
+jobs:
+  migration-test:
+    name: Migration Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: migration_test
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+        ports: [5432:5432]
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client
+
+      - name: Apply old migrations (all except latest)
+        run: |
+          # Get all migrations except the latest
+          migrations=$(ls -1 prisma/migrations/*/migration.sql 2>/dev/null | head -n -1)
+          if [ -n "$migrations" ]; then
+            for migration in $migrations; do
+              echo "Applying $(basename $(dirname $migration))..."
+              PGPASSWORD=postgres psql -h localhost -U postgres -d migration_test -f "$migration"
+            done
+          else
+            echo "No old migrations to apply"
+          fi
+
+      - name: Seed existing data
+        run: |
+          if [ -f prisma/testdata/seed_before_migration.sql ]; then
+            echo "Seeding test data..."
+            PGPASSWORD=postgres psql -h localhost -U postgres -d migration_test \
+              -f prisma/testdata/seed_before_migration.sql
+          else
+            echo "No seed data file found, skipping"
+          fi
+
+      - name: Apply latest migration
+        run: |
+          latest=$(ls -1 prisma/migrations/*/migration.sql 2>/dev/null | tail -1)
+          if [ -n "$latest" ]; then
+            echo "Applying latest migration: $(basename $(dirname $latest))..."
+            PGPASSWORD=postgres psql -h localhost -U postgres -d migration_test -f "$latest"
+          else
+            echo "No migrations found"
+            exit 1
+          fi
+
+      - name: Verify data integrity
+        run: |
+          # Add your data integrity checks here
+          # Example: Check if tables exist
+          tables=$(PGPASSWORD=postgres psql -h localhost -U postgres -d migration_test -t -A -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';")
+          echo "Tables found: $tables"
+          [ "$tables" -ge "1" ] && echo "Migration successful - tables created" || exit 1
+
+  test:
+    name: Test & Lint
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: saju_test
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+        ports: [5432:5432]
+
+      redis:
+        image: redis:7-alpine
+        options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+        ports: [6379:6379]
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        env:
+          NODE_ENV: test
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/saju_test?schema=public"
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          ACCESS_TOKEN_SECRET: test-access-secret
+          REFRESH_TOKEN_SECRET: test-refresh-secret
+          ACCESS_TOKEN_EXPIRES_IN: 900
+          REFRESH_TOKEN_EXPIRES_IN: 604800
+          IDP_BASE_URL: http://localhost:8080
+          IDP_CLIENT_ID: test-client-id
+          IDP_CLIENT_SECRET: test-client-secret
+          OPENAI_API_KEY: test-api-key
+        run: npm test -- --coverage
+
+      - name: Upload Coverage
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage/lcov.info
+          flags: unittests
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+
+      - name: Run Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs
+          scan-ref: .
+          exit-code: 0
+
+  docker:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [app, migration]
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build & Test
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./build/Dockerfile${{ matrix.service == 'app' && '' || '.migration' }}
+          load: true
+          tags: traditional-saju-${{ matrix.service }}:test
+          cache-from: type=gha,scope=ci-${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=ci-${{ matrix.service }}
+
+      - name: Verify Image
+        run: |
+          # Verify image was built successfully
+          docker inspect traditional-saju-${{ matrix.service }}:test >/dev/null && echo "${{ matrix.service }} image built successfully"
+
+          # Verify security: running as non-root user
+          USER=$(docker inspect traditional-saju-${{ matrix.service }}:test --format='{{.Config.User}}')
+          echo "Container user: $USER"
+
+          # Both services should run as non-root (UID != 0 or root)
+          if [ "$USER" = "0" ] || [ "$USER" = "root" ]; then
+            echo "❌ Error: Container running as root user"
+            exit 1
+          fi
+
+          if [ "${{ matrix.service }}" = "app" ]; then
+            # App service: accept both 'appuser' or the UID assigned by alpine
+            echo "🔒 Security: Running as non-root user ($USER)"
+          else
+            # Migration service: specifically check for UID 1001
+            if [ "$USER" = "1001" ]; then
+              echo "🔒 Security: Running as non-root user (1001)"
+            else
+              echo "❌ Error: Expected user 1001 but found: $USER"
+              exit 1
+            fi
+          fi
+
+      - name: Analyze Image
+        run: |
+          mkdir -p build-reports
+
+          echo "Analyzing Docker image: traditional-saju-${{ matrix.service }}:test"
+
+          # Collect image information
+          SIZE=$(docker inspect traditional-saju-${{ matrix.service }}:test --format='{{.Size}}' | awk '{printf "%.2f MB", $1/1024/1024}')
+          SIZE_BYTES=$(docker inspect traditional-saju-${{ matrix.service }}:test --format='{{.Size}}')
+          USER=$(docker inspect traditional-saju-${{ matrix.service }}:test --format='{{.Config.User}}')
+          WORKDIR=$(docker inspect traditional-saju-${{ matrix.service }}:test --format='{{.Config.WorkingDir}}')
+          PORTS=$(docker inspect traditional-saju-${{ matrix.service }}:test --format='{{json .Config.ExposedPorts}}' | jq -r 'keys | join(", ")' 2>/dev/null || echo "none")
+          LAYERS=$(docker history traditional-saju-${{ matrix.service }}:test --no-trunc | wc -l)
+
+          # Console output
+          echo "✅ Image size: $SIZE"
+          echo "📦 Layers: $LAYERS"
+          echo "👤 User: $USER"
+
+          # Generate detailed report
+          cat > build-reports/image-${{ matrix.service }}.txt << EOF
+          ================================================================================
+          Docker Image Analysis Report
+          ================================================================================
+          Service: traditional-saju-${{ matrix.service }}
+          Generated: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+
+          IMAGE INFORMATION
+          ────────────────────────────────────────────────────────────────────────────────
+          Name:          traditional-saju-${{ matrix.service }}:test
+          Size:          $SIZE ($SIZE_BYTES bytes)
+          Layers:        $LAYERS
+
+          SECURITY CONFIGURATION
+          ────────────────────────────────────────────────────────────────────────────────
+          User:          $USER
+          WorkingDir:    $WORKDIR
+          Exposed Ports: $PORTS
+
+          LAYER HISTORY
+          ────────────────────────────────────────────────────────────────────────────────
+          EOF
+
+          docker history traditional-saju-${{ matrix.service }}:test \
+            --format "{{.Size}}\t{{.CreatedBy}}" \
+            --no-trunc >> build-reports/image-${{ matrix.service }}.txt
+
+          echo "" >> build-reports/image-${{ matrix.service }}.txt
+          echo "================================================================================
+          End of Report
+          ================================================================================" >> build-reports/image-${{ matrix.service }}.txt
+
+      - name: Upload Image Analysis Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: image-analysis-${{ matrix.service }}
+          path: build-reports/image-${{ matrix.service }}.txt
+          retention-days: 30
+
+      - name: Vulnerability Scan
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: traditional-saju-${{ matrix.service }}:test
+          format: "table"
+          exit-code: 0
+          severity: "CRITICAL,HIGH"
+
+  helm:
+    name: Helm Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: azure/setup-helm@v4
+
+      - name: Lint Chart
+        run: helm lint deploy/chart
+
+      - name: Template Chart
+        run: helm template test deploy/chart

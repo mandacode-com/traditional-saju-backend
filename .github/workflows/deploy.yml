@@ -1,0 +1,95 @@
+name: Build and Deploy
+
+on:
+  push:
+    tags: ["v*"]
+
+env:
+  REGISTRY: ${{ vars.DOCKER_REGISTRY }}
+  REPOSITORY: ${{ vars.DOCKER_REPOSITORY }}
+
+jobs:
+  docker-build-and-push:
+    name: Docker Build and Push (${{ matrix.service }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - service: app
+            image-name: backend
+            dockerfile: ./build/Dockerfile
+            description: Saju Core API Service
+            latest-enabled: ${{ startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-') }}
+            skip-prerelease: false
+          - service: migration
+            image-name: migration
+            dockerfile: ./build/Dockerfile.migration
+            description: Saju Core database migration
+            latest-enabled: true
+            skip-prerelease: true
+
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+      actions: read
+      id-token: write
+
+    steps:
+      - name: Check if should skip
+        id: should-skip
+        run: |
+          if [[ "${{ matrix.skip-prerelease }}" == "true" ]] && [[ "${{ github.ref }}" == *"-"* ]]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "Skipping ${{ matrix.service }} for prerelease"
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+      - name: Checkout repository
+        if: steps.should-skip.outputs.skip != 'true'
+        uses: actions/checkout@v5
+
+      - name: Extract metadata
+        if: steps.should-skip.outputs.skip != 'true'
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/${{ matrix.image-name }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable=${{ matrix.latest-enabled }}
+          labels: |
+            org.opencontainers.image.title=${{ matrix.image-name }}
+            org.opencontainers.image.description=${{ matrix.description }}
+
+      - name: Set up Docker Buildx
+        if: steps.should-skip.outputs.skip != 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        if: steps.should-skip.outputs.skip != 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.DOCKER_REGISTRY_USERNAME }}
+          password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+
+      - name: Build and push Docker image
+        if: steps.should-skip.outputs.skip != 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
+          provenance: false
+          sbom: false
+
+      - name: Log out from Container Registry
+        if: always() && steps.should-skip.outputs.skip != 'true'
+        run: docker logout ${{ env.REGISTRY }}

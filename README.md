@@ -23,7 +23,7 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Traditional Saju API Service - A NestJS-based backend application for traditional Korean fortune-telling services.
 
 ## Project setup
 

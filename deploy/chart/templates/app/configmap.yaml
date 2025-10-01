@@ -1,0 +1,11 @@
+{{- if .Values.app.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "traditional-saju.app.configMapName" . }}
+  labels:
+    {{- include "traditional-saju.app.labels" . | nindent 4 }}
+data:
+  NODE_ENV: {{ .Values.app.env | quote }}
+  PORT: {{ .Values.app.service.targetPort | quote }}
+{{- end }}

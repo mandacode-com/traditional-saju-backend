@@ -1,22 +1,26 @@
-import { Body, Controller, HttpCode, Post } from '@nestjs/common';
-import { Roles } from 'src/decorators/role.decorator';
-import { User } from 'src/decorators/user.decorator';
 import {
+  Body,
+  Controller,
+  HttpCode,
+  Post,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { User } from '../decorators/user.decorator';
+import { DailySajuService } from '../services/daily-saju.service';
+import { YearlySajuService } from '../services/yearly-saju.service';
+import { ZodValidationPipe } from '../pipes/zod-validation.pipe';
+import {
+  DailySajuRequest,
   DailySajuRequestSchema,
-  DailySajuResponse,
-} from 'src/schemas/saju/daily_saju.schema';
-import type { DailySajuRequest } from 'src/schemas/saju/daily_saju.schema';
-import { RoleEnum } from 'src/schemas/role.schema';
-import { DailySajuService } from 'src/services/saju/daily_saju.service';
-import { ZodValidationPipe } from 'src/pipes/zod_validation.pipe';
-import { YearlySajuService } from 'src/services/saju/yearly_saju.service';
+} from '../services/types/daily-saju.type';
+import { DailySajuResult } from '../services/types/daily-saju.type';
 import {
+  YearlySajuRequest,
   YearlySajuRequestSchema,
-  YearlySajuResponse,
-} from 'src/schemas/saju/yearly_saju.schema';
-import type { YearlySajuRequest } from 'src/schemas/saju/yearly_saju.schema';
+} from '../services/types/yearly-saju.type';
+import { YearlySajuResponse } from '../services/types/yearly-saju.type';
 
-@Controller('read')
+@Controller('saju')
 export class SajuController {
   constructor(
     private readonly dailySajuService: DailySajuService,
@@ -24,57 +28,48 @@ export class SajuController {
   ) {}
 
   @Post('daily')
-  @Roles([RoleEnum.USER, RoleEnum.ADMIN])
   @HttpCode(200)
   async getDailySaju(
-    @Body(new ZodValidationPipe(DailySajuRequestSchema)) body: DailySajuRequest,
-    @User('uuid') uuid?: string,
-  ): Promise<DailySajuResponse> {
-    // Check if the user has already requested the daily saju
-    if (uuid) {
-      const existing = await this.dailySajuService.getExistingData(uuid);
-      if (existing) {
-        return existing;
-      }
+    @Body(
+      new ZodValidationPipe(
+        DailySajuRequestSchema.omit({ userId: true, userName: true }),
+      ),
+    )
+    body: Omit<DailySajuRequest, 'userId' | 'userName'>,
+    @User('userId') userId?: string,
+    @User('userName') userName?: string,
+  ): Promise<DailySajuResult> {
+    if (!userId || !userName) {
+      throw new UnauthorizedException('User not authenticated');
     }
-    const response = await this.dailySajuService.readSaju(body);
 
-    // Save the response if the user is logged in
-    if (uuid) {
-      await this.dailySajuService.saveDailySaju({
-        result: response,
-        userUuid: uuid,
-      });
-    }
-    return response;
+    return this.dailySajuService.readSaju({
+      ...body,
+      userId,
+      userName,
+    });
   }
 
   @Post('yearly')
-  @Roles([RoleEnum.USER, RoleEnum.ADMIN])
   @HttpCode(200)
   async getYearlySaju(
-    @Body(new ZodValidationPipe(YearlySajuRequestSchema))
-    body: YearlySajuRequest,
-    @User('uuid') uuid?: string,
+    @Body(
+      new ZodValidationPipe(
+        YearlySajuRequestSchema.omit({ userId: true, userName: true }),
+      ),
+    )
+    body: Omit<YearlySajuRequest, 'userId' | 'userName'>,
+    @User('userId') userId?: string,
+    @User('userName') userName?: string,
   ): Promise<YearlySajuResponse> {
-    // Check if the user has already requested the yearly saju
-    if (uuid) {
-      const existing = await this.yearlySajuService.getExistingYearlySaju(uuid);
-      if (existing) {
-        return existing;
-      }
+    if (!userId || !userName) {
+      throw new UnauthorizedException('User not authenticated');
     }
 
-    const response = await this.yearlySajuService.getYearlySaju(body);
-
-    // Save the response if the user is logged in
-    if (uuid) {
-      await this.yearlySajuService.saveYearlySaju({
-        data: response,
-        userUuid: uuid,
-      });
-    }
-
-    return response;
+    return this.yearlySajuService.readSaju({
+      ...body,
+      userId,
+      userName,
+    });
   }
 }
