@@ -8,7 +8,7 @@ image:
 
 # Application configuration
 app:
-  imageName: "traditional-saju"
+  imageName: "backend"
   enabled: true
   env: "prod"
   replicaCount: 2
@@ -74,7 +74,7 @@ openai:
 # Database migration configuration
 migration:
   enabled: true
-  imageName: "traditional-saju-migration"
+  imageName: "migration"
   version: "latest"
   resources:
     limits:
