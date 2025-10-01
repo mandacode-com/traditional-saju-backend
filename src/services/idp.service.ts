@@ -3,22 +3,35 @@ import {
   UserIdentityResponseDto,
   UserIdentityResponseSchema,
 } from './types/idp.type';
+import { Config } from 'src/config/config.schema';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class IdpService {
   private idpBaseUrl: string;
+  private clientID: string;
+  private clientSecret: string;
 
-  constructor(idpBaseUrl: string) {
-    this.idpBaseUrl = idpBaseUrl;
+  constructor(configService: ConfigService<Config, true>) {
+    const idpConfig = configService.get<Config['idp']>('idp');
+    if (!idpConfig) {
+      throw new Error('IDP configuration is missing');
+    }
+    this.idpBaseUrl = idpConfig.baseUrl;
+    this.clientID = idpConfig.clientId;
+    this.clientSecret = idpConfig.clientSecret;
   }
 
-  async login(accessToken: string) {
-    const response = await fetch(`${this.idpBaseUrl}/userinfo`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
+  async login(accessToken: string, provider: string) {
+    const response = await fetch(
+      `${this.idpBaseUrl}/auth/token?client_id=${this.clientID}&client_secret=${this.clientSecret}&provider=${provider}`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
       },
-    });
+    );
 
     if (!response.ok) {
       throw new Error('Failed to fetch user info from IDP');

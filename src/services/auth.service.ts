@@ -9,8 +9,8 @@ export class AuthService {
     private readonly token: TokenService,
   ) {}
 
-  async login(accessToken: string) {
-    const userInfo = await this.idp.login(accessToken);
+  async login(accessToken: string, provider: string) {
+    const userInfo = await this.idp.login(accessToken, provider);
     const tokens = await this.token.issueToken(userInfo.userId);
     return {
       accessToken: tokens.accessToken,

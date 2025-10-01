@@ -123,8 +123,8 @@ export class DailySajuService {
     };
 
     const parsedResult = await DailySajuResponseSchema.parseAsync(result).catch(
-      (_err) => {
-        throw new InternalServerErrorException('Failed to parse response');
+      (err) => {
+        throw new InternalServerErrorException(err);
       },
     );
 
