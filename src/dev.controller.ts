@@ -1,14 +1,13 @@
 import { Controller, Get, HttpCode, Req } from '@nestjs/common';
-import { RoleEnum } from './schemas/role.schema';
-import { Roles } from './decorators/role.decorator';
 import { User } from './decorators/user.decorator';
+import { Public } from './decorators/public.decorator';
 import type { Request } from 'express';
-import { EventPattern, Payload } from '@nestjs/microservices';
 
 @Controller('/dev')
 export class DevController {
   @Get('/gateway-feedback/headers')
   @HttpCode(200)
+  @Public()
   getHeaderValues(@Req() req: Request) {
     console.log(req.rawHeaders);
 
@@ -17,29 +16,25 @@ export class DevController {
     };
   }
 
-  @Get('/gateway-feedback/role')
+  @Get('/gateway-feedback/user-id')
   @HttpCode(200)
-  @Roles([RoleEnum.USER, RoleEnum.ADMIN])
-  getRole(@User('role') role: RoleEnum) {
-    console.log(role.toString());
+  getUserId(@User('userId') userId: string) {
+    console.log(userId);
 
     return {
-      message: 'role has been printed on the console',
+      message: 'userId has been printed on the console',
+      userId,
     };
   }
 
-  @Get('/gateway-feedback/uuid')
+  @Get('/gateway-feedback/user-name')
   @HttpCode(200)
-  getUuid(@User('uuid') uuid: string) {
-    console.log(uuid);
+  getUserName(@User('userName') userName: string) {
+    console.log(userName);
 
     return {
-      message: 'uuid has been printed on the console',
+      message: 'userName has been printed on the console',
+      userName,
     };
-  }
-
-  @EventPattern('test.event')
-  getTestEvent(@Payload() message: { tid: string }) {
-    console.log(`Test event received: ${message.tid}`);
   }
 }
