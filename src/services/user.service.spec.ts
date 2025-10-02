@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UserService, CreateUserDto } from './user.service';
 import { PrismaService } from './prisma.service';
 import { User } from '@prisma/client';
+import { NotFoundException } from '@nestjs/common';
 
 describe('UserService', () => {
   let service: UserService;
@@ -11,6 +12,7 @@ describe('UserService', () => {
       findUnique: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
+      delete: jest.fn(),
     },
   };
 
@@ -168,6 +170,53 @@ describe('UserService', () => {
           email: 'new@example.com',
         },
       });
+    });
+  });
+
+  describe('updateNickname', () => {
+    it('should update nickname successfully', async () => {
+      const mockUser = createMockUser();
+      const updatedUser = createMockUser({ nickname: 'newNickname' });
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      mockPrismaService.user.update.mockResolvedValue(updatedUser);
+
+      const result = await service.updateNickname('public-123', 'newNickname');
+
+      expect(result).toEqual(updatedUser);
+      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
+        where: { publicID: 'public-123' },
+        data: { nickname: 'newNickname' },
+      });
+    });
+
+    it('should throw NotFoundException when user not found', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.updateNickname('non-existent', 'newNickname'),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('deleteUser', () => {
+    it('should delete user successfully', async () => {
+      const mockUser = createMockUser();
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      mockPrismaService.user.delete.mockResolvedValue(mockUser);
+
+      await service.deleteUser('public-123');
+
+      expect(mockPrismaService.user.delete).toHaveBeenCalledWith({
+        where: { publicID: 'public-123' },
+      });
+    });
+
+    it('should throw NotFoundException when user not found', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(null);
+
+      await expect(service.deleteUser('non-existent')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

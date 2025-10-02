@@ -69,7 +69,8 @@ jwt:
 # IDP configuration
 idp:
   existingSecret: ""
-  baseUrl: "http://idp-service:8080"
+  authUrl: "http://idp-service:8080"
+  userUrl: "http://idp-service:8081"
   clientId: ""
   clientSecret: ""
 
