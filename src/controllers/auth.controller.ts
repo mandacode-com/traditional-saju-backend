@@ -20,7 +20,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Login' })
   @ApiHeader({
     name: 'Authorization',
-    description: 'Bearer token from IDP provider',
+    description: 'OAuth2 Bearer access token',
     required: true,
   })
   @ApiQuery({
