@@ -5,6 +5,13 @@ import {
   Post,
   UnauthorizedException,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiBody,
+} from '@nestjs/swagger';
 import { User } from '../decorators/user.decorator';
 import { DailySajuService } from '../services/daily-saju.service';
 import { YearlySajuService } from '../services/yearly-saju.service';
@@ -19,7 +26,13 @@ import {
   YearlySajuRequestSchema,
 } from '../services/types/yearly-saju.type';
 import { YearlySajuResponse } from '../services/types/yearly-saju.type';
+import { DailySajuRequestDto } from './dto/daily-saju-request.dto';
+import { DailySajuResponseDto } from './dto/daily-saju-response.dto';
+import { YearlySajuRequestDto } from './dto/yearly-saju-request.dto';
+import { YearlySajuResponseDto } from './dto/yearly-saju-response.dto';
 
+@ApiTags('saju')
+@ApiBearerAuth()
 @Controller('saju')
 export class SajuController {
   constructor(
@@ -29,6 +42,14 @@ export class SajuController {
 
   @Post('daily')
   @HttpCode(200)
+  @ApiOperation({ summary: 'Get daily fortune' })
+  @ApiBody({ type: DailySajuRequestDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Daily fortune retrieved successfully',
+    type: DailySajuResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getDailySaju(
     @Body(
       new ZodValidationPipe(
@@ -52,6 +73,14 @@ export class SajuController {
 
   @Post('yearly')
   @HttpCode(200)
+  @ApiOperation({ summary: 'Get yearly fortune' })
+  @ApiBody({ type: YearlySajuRequestDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Yearly fortune retrieved successfully',
+    type: YearlySajuResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getYearlySaju(
     @Body(
       new ZodValidationPipe(
