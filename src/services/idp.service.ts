@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import {
   UserIdentityResponseDto,
   UserIdentityResponseSchema,
@@ -7,7 +7,8 @@ import { Config } from 'src/config/config.schema';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class IdpService {
+export class IdpService implements OnModuleInit {
+  private readonly logger = new Logger(IdpService.name);
   private authUrl: string;
   private userUrl: string;
   private clientID: string;
@@ -22,6 +23,41 @@ export class IdpService {
     this.userUrl = idpConfig.userUrl;
     this.clientID = idpConfig.clientId;
     this.clientSecret = idpConfig.clientSecret;
+  }
+
+  async onModuleInit() {
+    await this.checkHealth();
+  }
+
+  private async checkHealth(): Promise<void> {
+    try {
+      const authHealthResponse = await fetch(`${this.authUrl}/health`, {
+        method: 'GET',
+      });
+
+      if (!authHealthResponse.ok) {
+        throw new Error(
+          `Auth service health check failed with status: ${authHealthResponse.status}`,
+        );
+      }
+
+      const userHealthResponse = await fetch(`${this.userUrl}/health`, {
+        method: 'GET',
+      });
+
+      if (!userHealthResponse.ok) {
+        throw new Error(
+          `User service health check failed with status: ${userHealthResponse.status}`,
+        );
+      }
+
+      this.logger.log('IDP service health check passed');
+    } catch (error) {
+      this.logger.error('IDP service health check failed', error);
+      throw new Error(
+        `Failed to connect to IDP service: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
   }
 
   async login(accessToken: string, provider: string) {
