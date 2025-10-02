@@ -1,7 +1,8 @@
 import { z } from 'zod';
 
 export const idpSchema = z.object({
-  baseUrl: z.string().url().nonempty(),
+  authUrl: z.string().url().nonempty(),
+  userUrl: z.string().url().nonempty(),
   clientId: z.string().nonempty(),
   clientSecret: z.string().nonempty(),
 });

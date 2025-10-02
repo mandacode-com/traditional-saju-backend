@@ -19,7 +19,8 @@ export function validate(env: Record<string, unknown>) {
     },
     redis: parseRedisConfig(env),
     idp: {
-      baseUrl: env.IDP_BASE_URL as string,
+      authUrl: env.IDP_AUTH_URL as string,
+      userUrl: env.IDP_USER_URL as string,
       clientId: env.IDP_CLIENT_ID as string,
       clientSecret: env.IDP_CLIENT_SECRET as string,
     },

@@ -8,7 +8,8 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class IdpService {
-  private idpBaseUrl: string;
+  private authUrl: string;
+  private userUrl: string;
   private clientID: string;
   private clientSecret: string;
 
@@ -17,14 +18,15 @@ export class IdpService {
     if (!idpConfig) {
       throw new Error('IDP configuration is missing');
     }
-    this.idpBaseUrl = idpConfig.baseUrl;
+    this.authUrl = idpConfig.authUrl;
+    this.userUrl = idpConfig.userUrl;
     this.clientID = idpConfig.clientId;
     this.clientSecret = idpConfig.clientSecret;
   }
 
   async login(accessToken: string, provider: string) {
     const response = await fetch(
-      `${this.idpBaseUrl}/auth/token?client_id=${this.clientID}&client_secret=${this.clientSecret}&provider=${provider}`,
+      `${this.authUrl}/auth/token?client_id=${this.clientID}&client_secret=${this.clientSecret}&provider=${provider}`,
       {
         method: 'GET',
         headers: {
@@ -48,7 +50,7 @@ export class IdpService {
 
   async deleteUser(userId: string): Promise<void> {
     const response = await fetch(
-      `${this.idpBaseUrl}/user?client_id=${this.clientID}&client_secret=${this.clientSecret}&user_id=${userId}`,
+      `${this.userUrl}/user/${userId}?client_id=${this.clientID}&client_secret=${this.clientSecret}`,
       {
         method: 'DELETE',
       },
