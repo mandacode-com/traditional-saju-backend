@@ -45,4 +45,17 @@ export class IdpService {
 
     return parsedData.data;
   }
+
+  async deleteUser(userId: string): Promise<void> {
+    const response = await fetch(
+      `${this.idpBaseUrl}/user?client_id=${this.clientID}&client_secret=${this.clientSecret}&user_id=${userId}`,
+      {
+        method: 'DELETE',
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to delete user from IDP');
+    }
+  }
 }
