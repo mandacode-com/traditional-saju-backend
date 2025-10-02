@@ -47,9 +47,16 @@ database:
 # Redis configuration
 redis:
   existingSecret: ""
+  mode: "standalone" # or "sentinel"
+  db: 0
+  password: ""
+  # Standalone mode configuration
   host: "redis"
   port: 6379
-  password: ""
+  # Sentinel mode configuration (only used when mode: "sentinel")
+  sentinels: ""  # Format: "host1:port1,host2:port2,host3:port3"
+  sentinelName: ""  # Master name for sentinel
+  sentinelPassword: ""
 
 # JWT configuration
 jwt:
