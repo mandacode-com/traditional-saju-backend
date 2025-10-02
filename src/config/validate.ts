@@ -10,8 +10,12 @@ export function validate(env: Record<string, unknown>) {
     token: {
       accessTokenSecret: env.ACCESS_TOKEN_SECRET as string,
       refreshTokenSecret: env.REFRESH_TOKEN_SECRET as string,
-      accessTokenExpiresIn: parseIntValue(env.ACCESS_TOKEN_EXPIRES_IN as string),
-      refreshTokenExpiresIn: parseIntValue(env.REFRESH_TOKEN_EXPIRES_IN as string),
+      accessTokenExpiresIn: parseIntValue(
+        env.ACCESS_TOKEN_EXPIRES_IN as string,
+      ),
+      refreshTokenExpiresIn: parseIntValue(
+        env.REFRESH_TOKEN_EXPIRES_IN as string,
+      ),
     },
     redis: parseRedisConfig(env),
     idp: {

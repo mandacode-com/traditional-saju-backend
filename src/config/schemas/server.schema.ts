@@ -6,8 +6,7 @@ export const serverSchema = z.object({
     .nonempty()
     .transform((x) => x.toLowerCase())
     .refine((x) => ['development', 'production', 'test'].includes(x), {
-      message:
-        'NODE_ENV must be one of "development", "production", or "test"',
+      message: 'NODE_ENV must be one of "development", "production", or "test"',
     })
     .default('development'),
   port: z.number().int().positive().default(3000),
