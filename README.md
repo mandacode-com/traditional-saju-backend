@@ -31,6 +31,37 @@ Traditional Saju API Service - A NestJS-based backend application for traditiona
 $ npm install
 ```
 
+## Environment Configuration
+
+### Redis Configuration
+
+This application supports both **Standalone** and **Sentinel** Redis modes.
+
+#### Standalone Mode (Default)
+```env
+REDIS_MODE=standalone
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+REDIS_DB=0
+```
+
+#### Sentinel Mode (High Availability)
+```env
+REDIS_MODE=sentinel
+REDIS_SENTINELS=sentinel1:26379,sentinel2:26379,sentinel3:26379
+REDIS_SENTINEL_NAME=mymaster
+REDIS_PASSWORD=
+REDIS_SENTINEL_PASSWORD=
+REDIS_DB=0
+```
+
+For Sentinel mode:
+- `REDIS_SENTINELS`: Comma-separated list of sentinel nodes (format: `host:port`)
+- `REDIS_SENTINEL_NAME`: Master name configured in Sentinel
+- `REDIS_PASSWORD`: Password for Redis master (optional)
+- `REDIS_SENTINEL_PASSWORD`: Password for Sentinel nodes (optional)
+
 ## Compile and run the project
 
 ```bash
