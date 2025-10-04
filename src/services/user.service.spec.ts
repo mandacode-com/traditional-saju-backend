@@ -19,8 +19,6 @@ describe('UserService', () => {
   const createMockUser = (overrides: Partial<User> = {}): User => ({
     id: 123,
     publicID: 'public-123',
-    nickname: 'testuser',
-    email: 'test@example.com',
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,
@@ -71,8 +69,6 @@ describe('UserService', () => {
   describe('findOrCreate', () => {
     const createUserDto: CreateUserDto = {
       publicID: 'public-123',
-      nickname: 'testuser',
-      email: 'test@example.com',
     };
 
     it('should create new user when not exists', async () => {
@@ -88,7 +84,7 @@ describe('UserService', () => {
       });
     });
 
-    it('should return existing user without update when data unchanged', async () => {
+    it('should return existing user when already exists', async () => {
       const mockUser = createMockUser();
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
 
@@ -97,104 +93,6 @@ describe('UserService', () => {
       expect(result).toEqual(mockUser);
       expect(mockPrismaService.user.update).not.toHaveBeenCalled();
       expect(mockPrismaService.user.create).not.toHaveBeenCalled();
-    });
-
-    it('should update user when nickname changed', async () => {
-      const existingUser = createMockUser();
-      const updatedUser = createMockUser({ nickname: 'newNickname' });
-      const dtoWithNewNickname: CreateUserDto = {
-        ...createUserDto,
-        nickname: 'newNickname',
-      };
-
-      mockPrismaService.user.findUnique.mockResolvedValue(existingUser);
-      mockPrismaService.user.update.mockResolvedValue(updatedUser);
-
-      const result = await service.findOrCreate(dtoWithNewNickname);
-
-      expect(result).toEqual(updatedUser);
-      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
-        where: { publicID: createUserDto.publicID },
-        data: {
-          nickname: 'newNickname',
-          email: createUserDto.email,
-        },
-      });
-    });
-
-    it('should update user when email changed', async () => {
-      const existingUser = createMockUser();
-      const updatedUser = createMockUser({ email: 'new@example.com' });
-      const dtoWithNewEmail: CreateUserDto = {
-        ...createUserDto,
-        email: 'new@example.com',
-      };
-
-      mockPrismaService.user.findUnique.mockResolvedValue(existingUser);
-      mockPrismaService.user.update.mockResolvedValue(updatedUser);
-
-      const result = await service.findOrCreate(dtoWithNewEmail);
-
-      expect(result).toEqual(updatedUser);
-      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
-        where: { publicID: createUserDto.publicID },
-        data: {
-          nickname: createUserDto.nickname,
-          email: 'new@example.com',
-        },
-      });
-    });
-
-    it('should update user when both nickname and email changed', async () => {
-      const existingUser = createMockUser();
-      const updatedUser = createMockUser({
-        nickname: 'newNickname',
-        email: 'new@example.com',
-      });
-      const dtoWithChanges: CreateUserDto = {
-        publicID: createUserDto.publicID,
-        nickname: 'newNickname',
-        email: 'new@example.com',
-      };
-
-      mockPrismaService.user.findUnique.mockResolvedValue(existingUser);
-      mockPrismaService.user.update.mockResolvedValue(updatedUser);
-
-      const result = await service.findOrCreate(dtoWithChanges);
-
-      expect(result).toEqual(updatedUser);
-      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
-        where: { publicID: createUserDto.publicID },
-        data: {
-          nickname: 'newNickname',
-          email: 'new@example.com',
-        },
-      });
-    });
-  });
-
-  describe('updateNickname', () => {
-    it('should update nickname successfully', async () => {
-      const mockUser = createMockUser();
-      const updatedUser = createMockUser({ nickname: 'newNickname' });
-      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockPrismaService.user.update.mockResolvedValue(updatedUser);
-
-      const result = await service.updateNickname('public-123', 'newNickname');
-
-      expect(result).toEqual(updatedUser);
-      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
-        where: { publicID: 'public-123' },
-        data: { nickname: 'newNickname' },
-      });
-    });
-
-    it('should throw NotFoundException when user not found', async () => {
-      mockPrismaService.user.findUnique.mockResolvedValue(null);
-
-      await expect(
-        service.updateNickname('non-existent', 'newNickname'),
-      ).rejects.toThrow(NotFoundException);
     });
   });
 
