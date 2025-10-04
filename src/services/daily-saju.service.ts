@@ -51,9 +51,7 @@ export class DailySajuService {
     );
     const existing = await this.prisma.sajuRecord.findFirst({
       where: {
-        user: {
-          publicID: request.userId,
-        },
+        userPublicID: request.userId,
         type: SajuType.DAILY_NORMAL,
         version: DailySajuService.version,
         createdAt: {
@@ -121,9 +119,7 @@ export class DailySajuService {
     // Save the result to the database
     await this.prisma.sajuRecord.create({
       data: {
-        user: {
-          connect: { publicID: request.userId },
-        },
+        userPublicID: request.userId,
         type: SajuType.DAILY_NORMAL,
         version: DailySajuService.version,
         data: parsed,

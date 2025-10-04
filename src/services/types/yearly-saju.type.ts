@@ -9,7 +9,7 @@ import {
 } from './saju-base.type';
 
 export const YearlySajuRequestSchema = z.object({
-  userId: z.string().optional(),
+  userId: z.string(),
   userName: z.string(),
   gender: GenderSchema,
   birthDateTime: z.string().datetime(),

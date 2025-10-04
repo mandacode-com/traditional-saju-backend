@@ -38,9 +38,7 @@ export class YearlySajuService {
 
     const existing = await this.prisma.sajuRecord.findFirst({
       where: {
-        user: {
-          publicID: request.userId,
-        },
+        userPublicID: request.userId,
         type: SajuType.NEW_YEAR,
         version: YearlySajuService.version,
         createdAt: {
@@ -215,9 +213,7 @@ export class YearlySajuService {
     // Save the result to the database
     await this.prisma.sajuRecord.create({
       data: {
-        user: {
-          connect: { publicID: request.userId },
-        },
+        userPublicID: request.userId,
         type: SajuType.NEW_YEAR,
         version: YearlySajuService.version,
         data: parsedResult,

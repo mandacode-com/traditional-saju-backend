@@ -11,17 +11,13 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { User } from '../decorators/user.decorator';
-import { UserService } from '../services/user.service';
 import { IdpService } from '../services/idp.service';
 
 @ApiTags('user')
 @ApiBearerAuth()
 @Controller('user')
 export class UserController {
-  constructor(
-    private readonly userService: UserService,
-    private readonly idpService: IdpService,
-  ) {}
+  constructor(private readonly idpService: IdpService) {}
 
   @Delete()
   @HttpCode(204)
@@ -34,10 +30,7 @@ export class UserController {
       throw new UnauthorizedException('User not authenticated');
     }
 
-    // Delete from IDP first
+    // Delete from IDP (user service manages user data)
     await this.idpService.deleteUser(userId);
-
-    // Then delete from local database
-    await this.userService.deleteUser(userId);
   }
 }
