@@ -109,7 +109,7 @@ export class DailySajuService {
       wealth: response.wealth,
       caution: response.caution,
       birthDateTime: request.birthDateTime,
-      questionAnswer: request.question ? response.questionAnswer : undefined,
+      questionAnswer: request.question ? response.questionAnswer : null,
     };
     const parsed = await DailySajuResultSchema.parseAsync(targetData).catch(
       (err) => {
