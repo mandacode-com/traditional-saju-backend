@@ -8,7 +8,6 @@ describe('UserController', () => {
   let controller: UserController;
 
   const mockUserService = {
-    updateNickname: jest.fn(),
     deleteUser: jest.fn(),
   };
 
@@ -38,34 +37,6 @@ describe('UserController', () => {
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
-  });
-
-  describe('updateNickname', () => {
-    it('should update nickname successfully', async () => {
-      const mockUser = {
-        publicID: 'user-123',
-        nickname: 'newNickname',
-        email: 'test@example.com',
-      };
-      mockUserService.updateNickname.mockResolvedValue(mockUser);
-
-      const result = await controller.updateNickname(
-        { nickname: 'newNickname' },
-        'user-123',
-      );
-
-      expect(result).toEqual(mockUser);
-      expect(mockUserService.updateNickname).toHaveBeenCalledWith(
-        'user-123',
-        'newNickname',
-      );
-    });
-
-    it('should throw UnauthorizedException when userId is missing', async () => {
-      await expect(
-        controller.updateNickname({ nickname: 'newNickname' }, undefined),
-      ).rejects.toThrow(UnauthorizedException);
-    });
   });
 
   describe('deleteUser', () => {

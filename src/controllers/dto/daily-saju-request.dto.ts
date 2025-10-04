@@ -1,7 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class DailySajuRequestDto {
-  @ApiProperty({ example: '2000-01-01T12:00:00Z', description: 'Birth date and time' })
+  @ApiProperty({
+    example: '2000-01-01T12:00:00Z',
+    description: 'Birth date and time',
+  })
   birthDateTime: string;
 
   @ApiProperty({ enum: ['male', 'female'], description: 'Gender' })

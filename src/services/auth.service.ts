@@ -18,12 +18,13 @@ export class AuthService {
     // Find or create user in our database
     const user = await this.userService.findOrCreate({
       publicID: idpUserInfo.userId,
-      nickname: idpUserInfo.nickname,
-      email: idpUserInfo.email,
     });
 
-    // Issue tokens with user info from our database
-    const tokens = await this.token.issueToken(user.publicID, user.nickname);
+    // Issue tokens with user info from IDP
+    const tokens = await this.token.issueToken(
+      user.publicID,
+      idpUserInfo.nickname,
+    );
 
     return {
       accessToken: tokens.accessToken,

@@ -13,7 +13,7 @@ export class DailySajuResponseDto {
   @ApiProperty({ description: 'Fortune score (0-100)' })
   fortuneScore: number;
 
-  @ApiProperty({ description: 'Today\'s short message' })
+  @ApiProperty({ description: "Today's short message" })
   todayShortMessage: string;
 
   @ApiProperty({ description: 'Overall fortune message' })

@@ -4,8 +4,6 @@ import { User } from '@prisma/client';
 
 export interface CreateUserDto {
   publicID: string;
-  nickname: string;
-  email: string;
 }
 
 @Injectable()
@@ -22,40 +20,13 @@ export class UserService {
     const existing = await this.findByPublicId(data.publicID);
 
     if (existing) {
-      // Update nickname and email if changed
-      if (
-        existing.nickname !== data.nickname ||
-        existing.email !== data.email
-      ) {
-        return this.prisma.user.update({
-          where: { publicID: data.publicID },
-          data: {
-            nickname: data.nickname,
-            email: data.email,
-          },
-        });
-      }
       return existing;
     }
 
     return this.prisma.user.create({
       data: {
         publicID: data.publicID,
-        nickname: data.nickname,
-        email: data.email,
       },
-    });
-  }
-
-  async updateNickname(publicID: string, nickname: string): Promise<User> {
-    const user = await this.findByPublicId(publicID);
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    return this.prisma.user.update({
-      where: { publicID },
-      data: { nickname },
     });
   }
 
