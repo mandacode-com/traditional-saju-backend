@@ -38,9 +38,7 @@ export class YearlySajuService {
 
     const existing = await this.prisma.sajuRecord.findFirst({
       where: {
-        user: {
-          publicID: request.userId,
-        },
+        userPublicID: request.userId,
         type: SajuType.NEW_YEAR,
         version: YearlySajuService.version,
         createdAt: {
@@ -84,10 +82,10 @@ export class YearlySajuService {
 
     // Handle birth time disabled
     if (request.birthTimeDisabled) {
-      chart.earthly.branches.hour = undefined;
-      chart.earthly.fiveElements.hour = undefined;
-      chart.heavenly.stems.hour = undefined;
-      chart.heavenly.fiveElements.hour = undefined;
+      chart.earthly.branches.hour = null;
+      chart.earthly.fiveElements.hour = null;
+      chart.heavenly.stems.hour = null;
+      chart.heavenly.fiveElements.hour = null;
     }
 
     const userChartInfo = {
@@ -187,7 +185,7 @@ export class YearlySajuService {
         career,
         waysToImprove,
         caution,
-        questionAnswer: request.question ? questionAnswer : undefined,
+        questionAnswer: request.question ? questionAnswer : null,
       },
     };
 
@@ -215,9 +213,7 @@ export class YearlySajuService {
     // Save the result to the database
     await this.prisma.sajuRecord.create({
       data: {
-        user: {
-          connect: { publicID: request.userId },
-        },
+        userPublicID: request.userId,
         type: SajuType.NEW_YEAR,
         version: YearlySajuService.version,
         data: parsedResult,

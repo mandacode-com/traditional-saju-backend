@@ -51,9 +51,7 @@ export class DailySajuService {
     );
     const existing = await this.prisma.sajuRecord.findFirst({
       where: {
-        user: {
-          publicID: request.userId,
-        },
+        userPublicID: request.userId,
         type: SajuType.DAILY_NORMAL,
         version: DailySajuService.version,
         createdAt: {
@@ -109,7 +107,7 @@ export class DailySajuService {
       wealth: response.wealth,
       caution: response.caution,
       birthDateTime: request.birthDateTime,
-      questionAnswer: request.question ? response.questionAnswer : undefined,
+      questionAnswer: request.question ? response.questionAnswer : null,
     };
     const parsed = await DailySajuResultSchema.parseAsync(targetData).catch(
       (err) => {
@@ -121,9 +119,7 @@ export class DailySajuService {
     // Save the result to the database
     await this.prisma.sajuRecord.create({
       data: {
-        user: {
-          connect: { publicID: request.userId },
-        },
+        userPublicID: request.userId,
         type: SajuType.DAILY_NORMAL,
         version: DailySajuService.version,
         data: parsed,
