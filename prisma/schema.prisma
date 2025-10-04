@@ -16,8 +16,6 @@ datasource db {
 model User {
   id         Int          @id @default(autoincrement())
   publicID   String       @unique @map("public_id")
-  nickname   String       @unique
-  email      String       @unique
   createdAt  DateTime     @default(now()) @map("created_at")
   updatedAt  DateTime     @updatedAt @map("updated_at")
   SajuRecord SajuRecord[]
