@@ -27,13 +27,13 @@ export const YearlySajuOpenAIResponseSchema = z.object({
         year: HeavenlyStemSchema,
         month: HeavenlyStemSchema,
         day: HeavenlyStemSchema,
-        hour: z.optional(HeavenlyStemSchema),
+        hour: HeavenlyStemSchema.nullable(),
       }),
       fiveElements: z.object({
         year: FiveElementSchema,
         month: FiveElementSchema,
         day: FiveElementSchema,
-        hour: z.optional(FiveElementSchema),
+        hour: FiveElementSchema.nullable(),
       }),
     }),
     earthly: z.object({
@@ -41,13 +41,13 @@ export const YearlySajuOpenAIResponseSchema = z.object({
         year: EarthlyBranchSchema,
         month: EarthlyBranchSchema,
         day: EarthlyBranchSchema,
-        hour: z.optional(EarthlyBranchSchema),
+        hour: EarthlyBranchSchema.nullable(),
       }),
       fiveElements: z.object({
         year: FiveElementSchema,
         month: FiveElementSchema,
         day: FiveElementSchema,
-        hour: z.optional(FiveElementSchema),
+        hour: FiveElementSchema.nullable(),
       }),
     }),
   }),
@@ -60,7 +60,7 @@ export const YearlySajuOpenAIResponseSchema = z.object({
     career: z.string(),
     waysToImprove: z.string(),
     caution: z.string(),
-    questionAnswer: z.string().optional(),
+    questionAnswer: z.string().nullable(),
   }),
 });
 export type YearlySajuOpenAIResponse = z.infer<

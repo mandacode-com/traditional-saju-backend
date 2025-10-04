@@ -84,10 +84,10 @@ export class YearlySajuService {
 
     // Handle birth time disabled
     if (request.birthTimeDisabled) {
-      chart.earthly.branches.hour = undefined;
-      chart.earthly.fiveElements.hour = undefined;
-      chart.heavenly.stems.hour = undefined;
-      chart.heavenly.fiveElements.hour = undefined;
+      chart.earthly.branches.hour = null;
+      chart.earthly.fiveElements.hour = null;
+      chart.heavenly.stems.hour = null;
+      chart.heavenly.fiveElements.hour = null;
     }
 
     const userChartInfo = {
@@ -187,7 +187,7 @@ export class YearlySajuService {
         career,
         waysToImprove,
         caution,
-        questionAnswer: request.question ? questionAnswer : undefined,
+        questionAnswer: request.question ? questionAnswer : null,
       },
     };
 

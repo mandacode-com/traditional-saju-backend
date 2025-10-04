@@ -24,7 +24,7 @@ export const DailySajuOpenAIResponseSchema = z.object({
   romantic: z.string(),
   health: z.string(),
   caution: z.string(),
-  questionAnswer: z.string().optional(),
+  questionAnswer: z.string().nullable(),
 });
 
 export type DailySajuOpenAIResponse = z.infer<
