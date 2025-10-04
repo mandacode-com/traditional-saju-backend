@@ -7,13 +7,11 @@ import {
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { TokenService } from '../services/token.service';
-import { UserService } from '../services/user.service';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   constructor(
     private readonly tokenService: TokenService,
-    private readonly userService: UserService,
     private readonly reflector: Reflector,
   ) {}
 
@@ -39,16 +37,9 @@ export class JwtAuthGuard implements CanActivate {
     try {
       const payload = await this.tokenService.verifyAccessToken(token);
 
-      // Fetch user from database to ensure it exists and get latest info
-      const user = await this.userService.findByPublicId(payload.userID);
-
-      if (!user) {
-        throw new UnauthorizedException('User not found');
-      }
-
       request.user = {
-        userId: user.publicID,
-        userName: user.nickname,
+        userId: payload.userID,
+        userName: payload.userName,
       };
     } catch {
       throw new UnauthorizedException('Invalid token');
