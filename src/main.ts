@@ -6,12 +6,19 @@ import { HttpExceptionFilter } from './filters/http_exception.filter';
 import { PrismaExceptionFilter } from './filters/prisma_exception.filter';
 import { ZodExceptionFilter } from './filters/zod_exception.filter';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const config = app.get(ConfigService<Config, true>);
 
   app.enableCors();
+
+  // Serve static files
+  app.useStaticAssets(join(__dirname, '..', 'public'), {
+    prefix: '/public/',
+  });
 
   // Implement global exception filter
   app.useGlobalFilters(

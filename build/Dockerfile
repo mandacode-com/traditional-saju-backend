@@ -58,6 +58,7 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 # Copy built app and production dependencies (before switching user)
 COPY --from=pruner /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/public ./public
 COPY package.json ./
 
 # Copy Prisma Client
