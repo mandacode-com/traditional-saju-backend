@@ -103,7 +103,7 @@ export class SajuController {
       userName,
       gender: body.gender,
       birthDateTime: body.birthDateTime,
-      birthTimeDisabled: body.birthDateTimeDisabled ?? false,
+      birthTimeDisabled: body.birthTimeDisabled ?? false,
       datingStatus: body.datingStatus,
       jobStatus: body.jobStatus,
       question: body.question,
