@@ -30,10 +30,7 @@ async function bootstrap() {
   );
 
   // Implement global exception filter
-  app.useGlobalFilters(
-    new HttpExceptionFilter(),
-    new PrismaExceptionFilter(),
-  );
+  app.useGlobalFilters(new HttpExceptionFilter(), new PrismaExceptionFilter());
 
   // Swagger setup
   const swaggerConfig = new DocumentBuilder()
