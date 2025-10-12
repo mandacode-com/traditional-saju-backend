@@ -1,71 +1,49 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Gender } from '../../types/user.type';
+import { ChartDto } from './chart.dto';
 
-class SajuChartDto {
-  @ApiProperty({ description: 'Year heavenly stem' })
-  yearSky: string;
+class YearlySajuDescriptionDto {
+  @ApiProperty({ description: 'General description' })
+  general: string;
 
-  @ApiProperty({ description: 'Year earthly branch' })
-  yearEarth: string;
+  @ApiProperty({ description: 'Relationship description' })
+  relationship: string;
 
-  @ApiProperty({ description: 'Month heavenly stem' })
-  monthSky: string;
+  @ApiProperty({ description: 'Wealth description' })
+  wealth: string;
 
-  @ApiProperty({ description: 'Month earthly branch' })
-  monthEarth: string;
+  @ApiProperty({ description: 'Romantic description' })
+  romantic: string;
 
-  @ApiProperty({ description: 'Day heavenly stem' })
-  daySky: string;
+  @ApiProperty({ description: 'Health description' })
+  health: string;
 
-  @ApiProperty({ description: 'Day earthly branch' })
-  dayEarth: string;
+  @ApiProperty({ description: 'Career description' })
+  career: string;
 
-  @ApiProperty({ required: false, description: 'Time heavenly stem' })
-  timeSky?: string;
+  @ApiProperty({ description: 'Ways to improve' })
+  waysToImprove: string;
 
-  @ApiProperty({ required: false, description: 'Time earthly branch' })
-  timeEarth?: string;
+  @ApiProperty({ description: 'Caution message' })
+  caution: string;
+
+  @ApiProperty({ description: 'Answer to user question', nullable: true })
+  questionAnswer: string | null;
 }
 
 export class YearlySajuResponseDto {
-  @ApiProperty({ description: 'Name' })
+  @ApiProperty({ description: 'User name' })
   name: string;
 
-  @ApiProperty({ description: 'Birth date' })
-  birthDate: string;
+  @ApiProperty({ description: 'Birth date and time in ISO format' })
+  birthDateTime: string;
 
-  @ApiProperty({ description: 'Birth time' })
-  birthTime: string;
+  @ApiProperty({ enum: Gender, description: 'Gender' })
+  gender: Gender;
 
-  @ApiProperty({ enum: ['male', 'female'], description: 'Gender' })
-  gender: 'male' | 'female';
+  @ApiProperty({ type: ChartDto, description: 'Saju chart' })
+  chart: ChartDto;
 
-  @ApiProperty({ description: 'Saju chart', type: SajuChartDto })
-  chart: SajuChartDto;
-
-  @ApiProperty({ description: 'General fortune' })
-  general: string;
-
-  @ApiProperty({ description: 'Relationship fortune' })
-  relationship: string;
-
-  @ApiProperty({ description: 'Wealth fortune' })
-  wealth: string;
-
-  @ApiProperty({ description: 'Romantic fortune' })
-  romantic: string;
-
-  @ApiProperty({ description: 'Health fortune' })
-  health: string;
-
-  @ApiProperty({ description: 'Career fortune' })
-  career: string;
-
-  @ApiProperty({ description: 'Ways to improve fortune' })
-  waysToImprove: string;
-
-  @ApiProperty({ description: 'Caution' })
-  caution: string;
-
-  @ApiProperty({ required: false, description: 'Answer to question' })
-  questionAnswer?: string;
+  @ApiProperty({ type: YearlySajuDescriptionDto, description: 'Description' })
+  description: YearlySajuDescriptionDto;
 }

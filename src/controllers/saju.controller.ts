@@ -73,7 +73,7 @@ export class SajuController {
       romantic: result.romantic,
       health: result.health,
       caution: result.caution,
-      questionAnswer: result.questionAnswer ?? undefined,
+      questionAnswer: result.questionAnswer,
     };
 
     return response;
@@ -117,28 +117,10 @@ export class SajuController {
 
     const response: YearlySajuResponseDto = {
       name: result.name,
-      birthDate: result.birthDateTime.split('T')[0],
-      birthTime: result.birthDateTime.split('T')[1].substring(0, 5),
+      birthDateTime: result.birthDateTime,
       gender: result.gender,
-      chart: {
-        yearSky: result.chart.heavenly.stems.year,
-        yearEarth: result.chart.earthly.branches.year,
-        monthSky: result.chart.heavenly.stems.month,
-        monthEarth: result.chart.earthly.branches.month,
-        daySky: result.chart.heavenly.stems.day,
-        dayEarth: result.chart.earthly.branches.day,
-        timeSky: result.chart.heavenly.stems.hour ?? undefined,
-        timeEarth: result.chart.earthly.branches.hour ?? undefined,
-      },
-      general: result.description.general,
-      relationship: result.description.relationship,
-      wealth: result.description.wealth,
-      romantic: result.description.romantic,
-      health: result.description.health,
-      career: result.description.career,
-      waysToImprove: result.description.waysToImprove,
-      caution: result.description.caution,
-      questionAnswer: result.description.questionAnswer ?? undefined,
+      chart: result.chart,
+      description: result.description,
     };
 
     return response;

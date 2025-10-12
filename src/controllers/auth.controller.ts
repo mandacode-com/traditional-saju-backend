@@ -8,7 +8,7 @@ import {
 import { Public } from '../decorators/public.decorator';
 import { AuthService } from 'src/services/auth.service';
 import { LoginResponseDto } from './dto/login-response.dto';
-import { LoginRequestDto } from './dto/auth-request.dto';
+import { LoginRequestDto } from './dto/login-request.dto';
 
 @ApiTags('auth')
 @Controller('auth')
