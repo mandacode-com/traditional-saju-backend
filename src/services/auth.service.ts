@@ -10,8 +10,8 @@ export class AuthService {
   ) {}
 
   // Login with OAuth2 access token from provider
-  async login(accessToken: string, provider: string) {
-    const idpUserInfo = await this.idp.login(accessToken, provider);
+  async login(idToken: string, provider: string) {
+    const idpUserInfo = await this.idp.login(idToken, provider);
 
     // Issue tokens with user info from IDP
     const tokens = await this.token.issueToken(
