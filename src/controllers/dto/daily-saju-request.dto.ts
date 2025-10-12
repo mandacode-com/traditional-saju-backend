@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsEnum, IsOptional, IsISO8601 } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsEnum,
+  IsOptional,
+  IsISO8601,
+} from 'class-validator';
 import { Gender, DatingStatus, JobStatus } from '../../types/user.type';
 
 export class DailySajuRequestDto {

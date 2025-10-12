@@ -5,24 +5,19 @@ import {
   IsEnum,
   IsOptional,
   IsBoolean,
-  Matches,
+  IsISO8601,
 } from 'class-validator';
 import { Gender, DatingStatus, JobStatus } from '../../types/user.type';
 
 export class YearlySajuRequestDto {
-  @ApiProperty({ example: '2000-01-01', description: 'Birth date' })
-  @IsString()
-  @IsNotEmpty()
-  @Matches(/^\d{4}-\d{2}-\d{2}$/, {
-    message: 'birthDate must be in YYYY-MM-DD format',
+  @ApiProperty({
+    example: '2000-01-01T12:00:00Z',
+    description: 'Birth date and time',
   })
-  birthDate: string;
-
-  @ApiProperty({ example: '12:00', description: 'Birth time' })
   @IsString()
   @IsNotEmpty()
-  @Matches(/^\d{2}:\d{2}$/, { message: 'birthTime must be in HH:mm format' })
-  birthTime: string;
+  @IsISO8601()
+  birthDateTime: string;
 
   @ApiProperty({ enum: Gender, description: 'Gender' })
   @IsEnum(Gender)
@@ -42,15 +37,10 @@ export class YearlySajuRequestDto {
   @IsEnum(JobStatus)
   jobStatus: JobStatus;
 
-  @ApiProperty({ required: false, description: 'Is leap month' })
-  @IsBoolean()
-  @IsOptional()
-  isLeapMonth?: boolean;
-
   @ApiProperty({ required: false, description: 'Birth time unknown' })
   @IsBoolean()
   @IsOptional()
-  isBirthTimeUnknown?: boolean;
+  birthTimeDisabled?: boolean;
 
   @ApiProperty({ required: false, description: 'Optional question' })
   @IsString()

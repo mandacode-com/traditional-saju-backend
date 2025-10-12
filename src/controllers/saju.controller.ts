@@ -98,16 +98,12 @@ export class SajuController {
       throw new UnauthorizedException('User not authenticated');
     }
 
-    const birthDateTime = new Date(
-      `${body.birthDate}T${body.birthTime}:00.000Z`,
-    ).toISOString();
-
     const input: YearlySajuInput = {
       userId,
       userName,
       gender: body.gender,
-      birthDateTime,
-      birthTimeDisabled: body.isBirthTimeUnknown ?? false,
+      birthDateTime: body.birthDateTime,
+      birthTimeDisabled: body.birthTimeDisabled ?? false,
       datingStatus: body.datingStatus,
       jobStatus: body.jobStatus,
       question: body.question,
