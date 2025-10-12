@@ -7,7 +7,7 @@ import {
 } from './saju-base.type';
 import { Gender, DatingStatus, JobStatus } from '../../types/user.type';
 
-export interface YearlySajuRequest {
+export interface YearlySajuInput {
   userId: string;
   userName: string;
   gender: Gender;
@@ -65,10 +65,10 @@ export type YearlySajuOpenAIResponse = z.infer<
   typeof YearlySajuOpenAIResponseSchema
 >;
 
-export const YearlySajuResponseSchema = z.object({
+export const YearlySajuResultSchema = z.object({
   name: z.string(),
   birthDateTime: z.string().datetime(),
   gender: GenderSchema,
   ...YearlySajuOpenAIResponseSchema.shape,
 });
-export type YearlySajuResponse = z.infer<typeof YearlySajuResponseSchema>;
+export type YearlySajuResult = z.infer<typeof YearlySajuResultSchema>;

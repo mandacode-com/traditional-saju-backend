@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { GenderSchema } from './saju-base.type';
 import { Gender, DatingStatus, JobStatus } from '../../types/user.type';
 
-export interface DailySajuRequest {
+export interface DailySajuInput {
   userId: string;
   userName: string;
   gender: Gender;

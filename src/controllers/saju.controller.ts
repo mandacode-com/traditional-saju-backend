@@ -15,14 +15,8 @@ import {
 import { User } from '../decorators/user.decorator';
 import { DailySajuService } from '../services/daily-saju.service';
 import { YearlySajuService } from '../services/yearly-saju.service';
-import {
-  DailySajuResult,
-  DailySajuRequest,
-} from '../services/types/daily-saju.type';
-import {
-  YearlySajuResponse,
-  YearlySajuRequest,
-} from '../services/types/yearly-saju.type';
+import { DailySajuInput } from '../services/types/daily-saju.type';
+import { YearlySajuInput } from '../services/types/yearly-saju.type';
 import { DailySajuRequestDto } from './dto/daily-saju-request.dto';
 import { DailySajuResponseDto } from './dto/daily-saju-response.dto';
 import { YearlySajuRequestDto } from './dto/yearly-saju-request.dto';
@@ -50,12 +44,12 @@ export class SajuController {
     @Body() body: DailySajuRequestDto,
     @User('userId') userId?: string,
     @User('userName') userName?: string,
-  ): Promise<DailySajuResult> {
+  ): Promise<DailySajuResponseDto> {
     if (!userId || !userName) {
       throw new UnauthorizedException('User not authenticated');
     }
 
-    const request: DailySajuRequest = {
+    const input: DailySajuInput = {
       userId,
       userName,
       gender: body.gender,
@@ -65,7 +59,24 @@ export class SajuController {
       question: body.question,
     };
 
-    return this.dailySajuService.readSaju(request);
+    const result = await this.dailySajuService.readSaju(input);
+
+    const response: DailySajuResponseDto = {
+      name: result.name,
+      birthDateTime: result.birthDateTime,
+      gender: result.gender,
+      fortuneScore: result.fortuneScore,
+      todayShortMessage: result.todayShortMessage,
+      totalFortuneMessage: result.totalFortuneMessage,
+      relationship: result.relationship,
+      wealth: result.wealth,
+      romantic: result.romantic,
+      health: result.health,
+      caution: result.caution,
+      questionAnswer: result.questionAnswer ?? undefined,
+    };
+
+    return response;
   }
 
   @Post('yearly')
@@ -82,17 +93,16 @@ export class SajuController {
     @Body() body: YearlySajuRequestDto,
     @User('userId') userId?: string,
     @User('userName') userName?: string,
-  ): Promise<YearlySajuResponse> {
+  ): Promise<YearlySajuResponseDto> {
     if (!userId || !userName) {
       throw new UnauthorizedException('User not authenticated');
     }
 
-    // Convert DTO to service request
     const birthDateTime = new Date(
       `${body.birthDate}T${body.birthTime}:00.000Z`,
     ).toISOString();
 
-    const request: YearlySajuRequest = {
+    const input: YearlySajuInput = {
       userId,
       userName,
       gender: body.gender,
@@ -103,6 +113,34 @@ export class SajuController {
       question: body.question,
     };
 
-    return this.yearlySajuService.readSaju(request);
+    const result = await this.yearlySajuService.readSaju(input);
+
+    const response: YearlySajuResponseDto = {
+      name: result.name,
+      birthDate: result.birthDateTime.split('T')[0],
+      birthTime: result.birthDateTime.split('T')[1].substring(0, 5),
+      gender: result.gender,
+      chart: {
+        yearSky: result.chart.heavenly.stems.year,
+        yearEarth: result.chart.earthly.branches.year,
+        monthSky: result.chart.heavenly.stems.month,
+        monthEarth: result.chart.earthly.branches.month,
+        daySky: result.chart.heavenly.stems.day,
+        dayEarth: result.chart.earthly.branches.day,
+        timeSky: result.chart.heavenly.stems.hour ?? undefined,
+        timeEarth: result.chart.earthly.branches.hour ?? undefined,
+      },
+      general: result.description.general,
+      relationship: result.description.relationship,
+      wealth: result.description.wealth,
+      romantic: result.description.romantic,
+      health: result.description.health,
+      career: result.description.career,
+      waysToImprove: result.description.waysToImprove,
+      caution: result.description.caution,
+      questionAnswer: result.description.questionAnswer ?? undefined,
+    };
+
+    return response;
   }
 }
