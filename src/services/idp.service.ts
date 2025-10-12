@@ -60,16 +60,16 @@ export class IdpService implements OnModuleInit {
     }
   }
 
-  async login(accessToken: string, provider: string) {
-    const response = await fetch(
-      `${this.authUrl}/auth/token?client_id=${this.clientID}&client_secret=${this.clientSecret}&provider=${provider}`,
-      {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
+  async login(idToken: string, provider: string) {
+    const response = await fetch(`${this.authUrl}/auth/id-token`, {
+      method: 'POST',
+      body: JSON.stringify({
+        id_token: idToken,
+        provider,
+        client_id: this.clientID,
+        client_secret: this.clientSecret,
+      }),
+    });
 
     if (!response.ok) {
       throw new Error('Failed to fetch user info from IDP');

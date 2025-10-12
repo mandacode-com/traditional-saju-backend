@@ -15,22 +15,18 @@ import {
 import { User } from '../decorators/user.decorator';
 import { DailySajuService } from '../services/daily-saju.service';
 import { YearlySajuService } from '../services/yearly-saju.service';
-import { ZodValidationPipe } from '../pipes/zod-validation.pipe';
 import {
+  DailySajuResult,
   DailySajuRequest,
-  DailySajuRequestSchema,
 } from '../services/types/daily-saju.type';
-import { DailySajuResult } from '../services/types/daily-saju.type';
 import {
+  YearlySajuResponse,
   YearlySajuRequest,
-  YearlySajuRequestSchema,
 } from '../services/types/yearly-saju.type';
-import { YearlySajuResponse } from '../services/types/yearly-saju.type';
 import { DailySajuRequestDto } from './dto/daily-saju-request.dto';
 import { DailySajuResponseDto } from './dto/daily-saju-response.dto';
 import { YearlySajuRequestDto } from './dto/yearly-saju-request.dto';
 import { YearlySajuResponseDto } from './dto/yearly-saju-response.dto';
-
 @ApiTags('saju')
 @ApiBearerAuth()
 @Controller('saju')
@@ -51,12 +47,7 @@ export class SajuController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getDailySaju(
-    @Body(
-      new ZodValidationPipe(
-        DailySajuRequestSchema.omit({ userId: true, userName: true }),
-      ),
-    )
-    body: Omit<DailySajuRequest, 'userId' | 'userName'>,
+    @Body() body: DailySajuRequestDto,
     @User('userId') userId?: string,
     @User('userName') userName?: string,
   ): Promise<DailySajuResult> {
@@ -64,11 +55,17 @@ export class SajuController {
       throw new UnauthorizedException('User not authenticated');
     }
 
-    return this.dailySajuService.readSaju({
-      ...body,
+    const request: DailySajuRequest = {
       userId,
       userName,
-    });
+      gender: body.gender,
+      birthDateTime: body.birthDateTime,
+      datingStatus: body.datingStatus,
+      jobStatus: body.jobStatus,
+      question: body.question,
+    };
+
+    return this.dailySajuService.readSaju(request);
   }
 
   @Post('yearly')
@@ -82,12 +79,7 @@ export class SajuController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getYearlySaju(
-    @Body(
-      new ZodValidationPipe(
-        YearlySajuRequestSchema.omit({ userId: true, userName: true }),
-      ),
-    )
-    body: Omit<YearlySajuRequest, 'userId' | 'userName'>,
+    @Body() body: YearlySajuRequestDto,
     @User('userId') userId?: string,
     @User('userName') userName?: string,
   ): Promise<YearlySajuResponse> {
@@ -95,10 +87,22 @@ export class SajuController {
       throw new UnauthorizedException('User not authenticated');
     }
 
-    return this.yearlySajuService.readSaju({
-      ...body,
+    // Convert DTO to service request
+    const birthDateTime = new Date(
+      `${body.birthDate}T${body.birthTime}:00.000Z`,
+    ).toISOString();
+
+    const request: YearlySajuRequest = {
       userId,
       userName,
-    });
+      gender: body.gender,
+      birthDateTime,
+      birthTimeDisabled: body.isBirthTimeUnknown ?? false,
+      datingStatus: body.datingStatus,
+      jobStatus: body.jobStatus,
+      question: body.question,
+    };
+
+    return this.yearlySajuService.readSaju(request);
   }
 }

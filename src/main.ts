@@ -4,10 +4,10 @@ import { ConfigService } from '@nestjs/config';
 import { Config } from './config/config.schema';
 import { HttpExceptionFilter } from './filters/http_exception.filter';
 import { PrismaExceptionFilter } from './filters/prisma_exception.filter';
-import { ZodExceptionFilter } from './filters/zod_exception.filter';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -20,11 +20,19 @@ async function bootstrap() {
     prefix: '/public/',
   });
 
+  // Implement global validation pipe
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
+
   // Implement global exception filter
   app.useGlobalFilters(
     new HttpExceptionFilter(),
     new PrismaExceptionFilter(),
-    new ZodExceptionFilter(),
   );
 
   // Swagger setup

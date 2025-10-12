@@ -1,20 +1,16 @@
 import { z } from 'zod';
-import {
-  DatingStatusSchema,
-  GenderSchema,
-  JobStatusSchema,
-} from './saju-base.type';
+import { GenderSchema } from './saju-base.type';
+import { Gender, DatingStatus, JobStatus } from '../../types/user.type';
 
-export const DailySajuRequestSchema = z.object({
-  userId: z.string().uuid(),
-  userName: z.string().min(1).max(20),
-  gender: GenderSchema,
-  birthDateTime: z.string().datetime(),
-  datingStatus: DatingStatusSchema,
-  jobStatus: JobStatusSchema,
-  question: z.string().optional(),
-});
-export type DailySajuRequest = z.infer<typeof DailySajuRequestSchema>;
+export interface DailySajuRequest {
+  userId: string;
+  userName: string;
+  gender: Gender;
+  birthDateTime: string;
+  datingStatus: DatingStatus;
+  jobStatus: JobStatus;
+  question?: string;
+}
 
 export const DailySajuOpenAIResponseSchema = z.object({
   todayShortMessage: z.string(),

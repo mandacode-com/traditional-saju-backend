@@ -1,24 +1,22 @@
 import { z } from 'zod';
 import {
-  DatingStatusSchema,
   EarthlyBranchSchema,
   FiveElementSchema,
   GenderSchema,
   HeavenlyStemSchema,
-  JobStatusSchema,
 } from './saju-base.type';
+import { Gender, DatingStatus, JobStatus } from '../../types/user.type';
 
-export const YearlySajuRequestSchema = z.object({
-  userId: z.string(),
-  userName: z.string(),
-  gender: GenderSchema,
-  birthDateTime: z.string().datetime(),
-  birthTimeDisabled: z.boolean(),
-  datingStatus: DatingStatusSchema,
-  jobStatus: JobStatusSchema,
-  question: z.string().optional(),
-});
-export type YearlySajuRequest = z.infer<typeof YearlySajuRequestSchema>;
+export interface YearlySajuRequest {
+  userId: string;
+  userName: string;
+  gender: Gender;
+  birthDateTime: string;
+  birthTimeDisabled: boolean;
+  datingStatus: DatingStatus;
+  jobStatus: JobStatus;
+  question?: string;
+}
 
 export const YearlySajuOpenAIResponseSchema = z.object({
   chart: z.object({
