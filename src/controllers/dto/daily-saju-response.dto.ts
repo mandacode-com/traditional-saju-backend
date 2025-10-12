@@ -1,22 +1,23 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Gender } from '../../types/user.type';
 
 export class DailySajuResponseDto {
-  @ApiProperty({ description: 'Name' })
+  @ApiProperty({ description: 'User name' })
   name: string;
 
-  @ApiProperty({ description: 'Birth date and time' })
+  @ApiProperty({ description: 'Birth date and time in ISO format' })
   birthDateTime: string;
 
-  @ApiProperty({ enum: ['male', 'female'], description: 'Gender' })
-  gender: 'male' | 'female';
+  @ApiProperty({ enum: Gender, description: 'Gender' })
+  gender: Gender;
 
-  @ApiProperty({ description: 'Fortune score (0-100)' })
+  @ApiProperty({ description: 'Fortune score', example: 85 })
   fortuneScore: number;
 
-  @ApiProperty({ description: "Today's short message" })
+  @ApiProperty({ description: 'Today short message' })
   todayShortMessage: string;
 
-  @ApiProperty({ description: 'Overall fortune message' })
+  @ApiProperty({ description: 'Total fortune message' })
   totalFortuneMessage: string;
 
   @ApiProperty({ description: 'Relationship fortune' })
@@ -31,9 +32,9 @@ export class DailySajuResponseDto {
   @ApiProperty({ description: 'Health fortune' })
   health: string;
 
-  @ApiProperty({ description: 'Caution' })
+  @ApiProperty({ description: 'Caution message' })
   caution: string;
 
-  @ApiProperty({ required: false, description: 'Answer to question' })
-  questionAnswer?: string;
+  @ApiProperty({ description: 'Answer to user question', nullable: true })
+  questionAnswer: string | null;
 }

@@ -9,11 +9,11 @@ import { Config } from '../config/config.schema';
 import { OpenAIService } from './openai.service';
 import { PrismaService } from './prisma.service';
 import {
+  YearlySajuInput,
   YearlySajuOpenAIResponse,
   YearlySajuOpenAIResponseSchema,
-  YearlySajuRequest,
-  YearlySajuResponse,
-  YearlySajuResponseSchema,
+  YearlySajuResult,
+  YearlySajuResultSchema,
 } from './types/yearly-saju.type';
 
 @Injectable()
@@ -31,7 +31,7 @@ export class YearlySajuService {
       this.config.get<Config['openai']>('openai').system_message.yearly;
   }
 
-  async readSaju(request: YearlySajuRequest): Promise<YearlySajuResponse> {
+  async readSaju(request: YearlySajuInput): Promise<YearlySajuResult> {
     const currentYear = new Date().getFullYear();
     const startOfYear = new Date(currentYear, 0, 1);
     const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59, 999);
@@ -53,7 +53,7 @@ export class YearlySajuService {
 
     // If existing record found, return it
     if (existing) {
-      const parsed = await YearlySajuResponseSchema.parseAsync(
+      const parsed = await YearlySajuResultSchema.parseAsync(
         existing.data,
       ).catch((err) => {
         Logger.error(err, 'YearlySajuService');
@@ -196,19 +196,19 @@ export class YearlySajuService {
       throw new InternalServerErrorException('Failed to parse response');
     });
 
-    const result: YearlySajuResponse = {
+    const result: YearlySajuResult = {
       name: request.userName,
       birthDateTime: request.birthDateTime,
       gender: request.gender,
       ...parsed,
     };
 
-    const parsedResult = await YearlySajuResponseSchema.parseAsync(
-      result,
-    ).catch((err) => {
-      Logger.error(err, 'YearlySajuService');
-      throw new InternalServerErrorException('Failed to parse response');
-    });
+    const parsedResult = await YearlySajuResultSchema.parseAsync(result).catch(
+      (err) => {
+        Logger.error(err, 'YearlySajuService');
+        throw new InternalServerErrorException('Failed to parse response');
+      },
+    );
 
     // Save the result to the database
     await this.prisma.sajuRecord.create({

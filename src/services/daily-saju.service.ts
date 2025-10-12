@@ -10,7 +10,7 @@ import { ScoreService } from './score.service';
 import { OpenAIService } from './openai.service';
 import { PrismaService } from './prisma.service';
 import {
-  DailySajuRequest,
+  DailySajuInput,
   DailySajuResult,
   DailySajuResultSchema,
   DailySajuOpenAIResponseSchema,
@@ -32,7 +32,7 @@ export class DailySajuService {
       this.config.get<Config['openai']>('openai').system_message.daily;
   }
 
-  async readSaju(request: DailySajuRequest): Promise<DailySajuResult> {
+  async readSaju(input: DailySajuInput): Promise<DailySajuResult> {
     const score = this.scoreService.generateScore();
     const currentDate = new Date();
     const startOfDay = new Date(
@@ -51,7 +51,7 @@ export class DailySajuService {
     );
     const existing = await this.prisma.sajuRecord.findFirst({
       where: {
-        userPublicID: request.userId,
+        userPublicID: input.userId,
         type: SajuType.DAILY_NORMAL,
         version: DailySajuService.version,
         createdAt: {
@@ -86,7 +86,7 @@ export class DailySajuService {
         {
           role: 'user',
           content: JSON.stringify({
-            ...request,
+            ...input,
             score,
           }),
         },
@@ -96,8 +96,8 @@ export class DailySajuService {
     });
 
     const targetData: DailySajuResult = {
-      name: request.userName,
-      gender: request.gender,
+      name: input.userName,
+      gender: input.gender,
       fortuneScore: score,
       relationship: response.relationship,
       health: response.health,
@@ -106,8 +106,8 @@ export class DailySajuService {
       todayShortMessage: response.todayShortMessage,
       wealth: response.wealth,
       caution: response.caution,
-      birthDateTime: request.birthDateTime,
-      questionAnswer: request.question ? response.questionAnswer : null,
+      birthDateTime: input.birthDateTime,
+      questionAnswer: input.question ? response.questionAnswer : null,
     };
     const parsed = await DailySajuResultSchema.parseAsync(targetData).catch(
       (err) => {
@@ -119,7 +119,7 @@ export class DailySajuService {
     // Save the result to the database
     await this.prisma.sajuRecord.create({
       data: {
-        userPublicID: request.userId,
+        userPublicID: input.userId,
         type: SajuType.DAILY_NORMAL,
         version: DailySajuService.version,
         data: parsed,
