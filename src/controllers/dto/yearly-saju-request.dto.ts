@@ -40,7 +40,7 @@ export class YearlySajuRequestDto {
   @ApiProperty({ required: false, description: 'Birth time unknown' })
   @IsBoolean()
   @IsOptional()
-  isBirthTimeUnknown?: boolean;
+  birthDateTimeDisabled?: boolean;
 
   @ApiProperty({ required: false, description: 'Optional question' })
   @IsString()
