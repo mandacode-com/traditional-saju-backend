@@ -31,7 +31,16 @@ export class YearlySajuService {
       this.config.get<Config['openai']>('openai').system_message.yearly;
   }
 
+  private normalizeDateTimeToISO(dateTimeStr: string): string {
+    const date = new Date(dateTimeStr);
+    return date.toISOString();
+  }
+
   async readSaju(request: YearlySajuInput): Promise<YearlySajuResult> {
+    const normalizedBirthDateTime = this.normalizeDateTimeToISO(
+      request.birthDateTime,
+    );
+
     const currentYear = new Date().getFullYear();
     const startOfYear = new Date(currentYear, 0, 1);
     const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59, 999);
@@ -198,7 +207,7 @@ export class YearlySajuService {
 
     const result: YearlySajuResult = {
       name: request.userName,
-      birthDateTime: request.birthDateTime,
+      birthDateTime: normalizedBirthDateTime,
       gender: request.gender,
       ...parsed,
     };
